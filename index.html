@@ -1,1 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construction Connection Reusability Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .nav-tab.active {
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            min-height: 600px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+
+        .form-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .form-group label {
+            min-width: 200px;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            min-width: 150px;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin: 20px 0;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 10px;
+            color: white;
+        }
+
+        .score-display {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .parameter-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .parameter-result {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .explanation-content {
+            line-height: 1.8;
+        }
+
+        .explanation-content h2 {
+            color: #667eea;
+            margin: 30px 0 15px 0;
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+        }
+
+        .explanation-content h3 {
+            color: #764ba2;
+            margin: 20px 0 10px 0;
+        }
+
+        .formula {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+        }
+
+        .github-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .github-steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .github-steps li {
+            counter-increment: step-counter;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+            padding-left: 60px;
+        }
+
+        .github-steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+
+        .tool-item {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .tool-item.selected {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .form-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .form-group label {
+                min-width: auto;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ Construction Connection Reusability Assessment</h1>
+            <p>Evaluate the reusability potential of construction connections with advanced scoring algorithms</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('calculator')">📊 Calculator</button>
+            <button class="nav-tab" onclick="showTab('explanation')">📚 Explanation</button>
+            <button class="nav-tab" onclick="showTab('github')">🔗 GitHub Setup</button>
+        </div>
+
+        <div class="content">
+            <!-- Calculator Tab -->
+            <div id="calculator" class="tab-content active">
+                <!-- Welcome Section -->
+                <div class="welcome-section" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; text-align: center;">
+                    <h2>🏗️ Welcome to the Construction Connection Reusability Assessment</h2>
+                    <p style="font-size: 1.1em; margin: 15px 0;">This advanced framework evaluates the reusability potential of construction connections through <strong>12 main parameters</strong>:</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin: 20px 0; text-align: left;">
+                        <div>• End of Cycle Waste</div>
+                        <div>• Prefabrication Degree</div>
+                        <div>• Damage Probability</div>
+                        <div>• Ease of Disassembly</div>
+                        <div>• Ease of Reassembly</div>
+                        <div>• Connection Complexity</div>
+                        <div>• Number of Steps and Time</div>
+                        <div>• Accessibility of Connection</div>
+                        <div>• Tolerance</div>
+                        <div>• Size</div>
+                        <div>• Structural Strength</div>
+                        <div>• Design Documentation</div>
+                    </div>
+                    <p style="font-size: 1.1em;">Based on these parameters, the reusability score of your connection will be calculated to help optimize construction sustainability.</p>
+                </div>
+
+                <form id="assessmentForm">
+                    <!-- 1. End of Cycle Waste -->
+                    <div class="form-section">
+                        <h3>🔄 1. End of Cycle Waste Assessment</h3>
+                        <p style="margin-bottom: 20px; color: #666; font-style: italic;">This parameter assesses the amount of material that can be reused when the connection system is disassembled.</p>
+                        
+                        <!-- Connection Geometry -->
+                        <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="color: #667eea; margin-bottom: 15px;">📐 Connection Geometry</h4>
+                            <div class="form-group">
+                                <label for="connectionType">Connection Type:</label>
+                                <select id="connectionType" required onchange="updateJointArea()">
+                                    <option value="">Select Connection Type</option>
+                                    <option value="Column-Column">Column-Column</option>
+                                    <option value="Wall-Wall Horizontal">Wall-Wall Horizontal</option>
+                                    <option value="Other">Other Connections</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="length">Length (cm):</label>
+                                <input type="number" id="length" min="0" step="0.1" required onchange="updateJointArea()">
+                            </div>
+                            <div class="form-group">
+                                <label for="width">Width (cm):</label>
+                                <input type="number" id="width" min="0" step="0.1" required onchange="updateJointArea()">
+                            </div>
+                            <div class="form-group">
+                                <label for="height">Height (cm):</label>
+                                <input type="number" id="height" min="0" step="0.1" onchange="updateJointArea()">
+                            </div>
+                            <div class="form-group" style="background: #e8f5e8; padding: 10px; border-radius: 5px; margin-top: 15px;">
+                                <label style="font-weight: bold; color: #2e7d32;">Joint Area:</label>
+                                <span id="jointAreaDisplay" style="font-weight: bold; color: #2e7d32;">-- cm²</span>
+                            </div>
+                        </div>
+
+                        <!-- Material Properties -->
+                        <div style="background: #fff8e1; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="color: #f57c00; margin-bottom: 15px;">🧱 Material Properties</h4>
+                            <div class="form-group">
+                                <label for="wasteArea">Waste Area (cm²):</label>
+                                <input type="number" id="wasteArea" min="0" step="0.1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="strengthClass">Concrete Strength Class:</label>
+                                <select id="strengthClass" required onchange="updateReductionFactor()">
+                                    <option value="">Select Strength Class</option>
+                                    <option value="C12/15">C12/15</option>
+                                    <option value="C20/25">C20/25</option>
+                                    <option value="C30/37">C30/37</option>
+                                    <option value="C40/50">C40/50</option>
+                                    <option value="C45/55">C45/55</option>
+                                    <option value="C50/60">C50/60</option>
+                                    <option value="C55/67">C55/67</option>
+                                    <option value="C60/76">C60/76</option>
+                                    <option value="C70/85">C70/85</option>
+                                    <option value="C80/95">C80/95</option>
+                                    <option value="C90/105">C90/105</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="mortarType">Mortar Type:</label>
+                                <select id="mortarType" required onchange="updateReductionFactor()">
+                                    <option value="">Select Mortar Type</option>
+                                    <option value="I">Type I</option>
+                                    <option value="IIIA">Type IIIA</option>
+                                    <option value="IIIB">Type IIIB</option>
+                                    <option value="IIIC">Type IIIC</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="background: #e8f5e8; padding: 10px; border-radius: 5px; margin-top: 15px;">
+                                <label style="font-weight: bold; color: #2e7d32;">Mortar Reduction Factor:</label>
+                                <span id="reductionFactorDisplay" style="font-weight: bold; color: #2e7d32;">--</span>
+                            </div>
+                        </div>
+
+                        <!-- Reinforcement Properties -->
+                        <div style="background: #fce4ec; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="color: #c2185b; margin-bottom: 15px;">🔩 Reinforcement Properties</h4>
+                            <div class="form-group" style="background: #e1f5fe; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                                <label style="font-weight: bold; color: #0277bd;">Reinforcement Type:</label>
+                                <span id="reinforcementTypeDisplay" style="font-weight: bold; color: #0277bd;">--</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="reinforcementValue" id="reinforcementLabel">Reinforcement:</label>
+                                <input type="text" id="reinforcementValue" placeholder="Enter 'No waste' or number/length">
+                            </div>
+                            <div class="form-group" id="reinforcementLengthGroup" style="display: none;">
+                                <label for="reinforcementLength">Reinforcement Length (cm):</label>
+                                <input type="number" id="reinforcementLength" min="0" step="0.1" placeholder="Enter length in cm (e.g., 70)">
+                            </div>
+                            <div class="form-group">
+                                <label for="reinforcementDiameter">Reinforcement Diameter:</label>
+                                <select id="reinforcementDiameter">
+                                    <option value="8">8 mm</option>
+                                    <option value="12">12 mm</option>
+                                    <option value="16">16 mm</option>
+                                    <option value="20">20 mm</option>
+                                    <option value="25">25 mm</option>
+                                    <option value="32">32 mm</option>
+                                    <option value="40">40 mm</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Calculate Button and Result -->
+                        <div style="text-align: center; margin: 20px 0;">
+                            <button type="button" class="calculate-btn" onclick="calculateEndOfCycleWaste()">
+                                🔬 Calculate End of Cycle Waste Score
+                            </button>
+                        </div>
+
+                        <div id="endOfCycleResult" class="results hidden">
+                            <h4>📊 End of Cycle Waste Result</h4>
+                            <div class="score-display" id="endOfCycleScore" style="font-size: 1.5em;">Score: --</div>
+                            <div id="endOfCycleDetails" style="margin-top: 15px; font-size: 0.9em;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Prefabrication Degree -->
+                    <div class="form-section">
+                        <h3>🏭 2. Prefabrication Degree Assessment</h3>
+                        <p style="margin-bottom: 20px; color: #666; font-style: italic;">This parameter measures the extent to which the connection is produced in a factory.</p>
+                        
+                        <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="color: #667eea; margin-bottom: 15px;">🏗️ Prefabrication Details</h4>
+                            <div class="form-group">
+                                <label for="prefabricatedArea">Prefabricated Area (cm²):</label>
+                                <input type="number" id="prefabricatedArea" min="0" step="0.1" required>
+                            </div>
+                            <div class="form-group" style="background: #e8f5e8; padding: 10px; border-radius: 5px; margin-top: 15px;">
+                                <label style="font-weight: bold; color: #2e7d32;">Joint Area (from above):</label>
+                                <span id="jointAreaDisplay2" style="font-weight: bold; color: #2e7d32;">-- cm²</span>
+                            </div>
+                        </div>
+
+                        <!-- Calculate Button and Result -->
+                        <div style="text-align: center; margin: 20px 0;">
+                            <button type="button" class="calculate-btn" onclick="calculatePrefabricationDegree()">
+                                🔬 Calculate Prefabrication Degree Score
+                            </button>
+                        </div>
+
+                        <div id="prefabricationResult" class="results hidden">
+                            <h4>📊 Prefabrication Degree Result</h4>
+                            <div class="score-display" id="prefabricationScore" style="font-size: 1.5em;">Score: --</div>
+                            <div id="prefabricationDetails" style="margin-top: 15px; font-size: 0.9em;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Ease of Disassembly -->
+                    <div class="form-section">
+                        <h3>🔧 3. Ease of Disassembly Assessment</h3>
+                        <p style="margin-bottom: 20px; color: #666; font-style: italic;">This parameter quantifies all procedures required to disassemble the connection system, encompassing the necessary tools, required labor skill level, and setup time.</p>
+                        
+                        <!-- Tool Selection -->
+                        <div style="background: #fff8e1; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="color: #f57c00; margin-bottom: 15px;">🛠️ Tool Selection (Select Multiple)</h4>
+                            <p style="margin-bottom: 15px; color: #666; font-size: 0.9em;">Click on the tools you will use for disassembly. Time input will appear for each selected tool.</p>
+                            
+                            <div id="toolsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                                <!-- Tools will be populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Connection Type -->
+                        <div style="background: #f3e5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="color: #8e24aa; margin-bottom: 15px;">🔗 Connection Type</h4>
+                            <div class="form-group">
+                                <label for="disassemblyConnectionType">Connection Type:</label>
+                                <select id="disassemblyConnectionType" onchange="updateDisassemblyParameters()" required>
+                                    <option value="">Select connection type</option>
+                                    <option value="Cementitious">Cementitious</option>
+                                    <option value="Screw">Screw</option>
+                                    <option value="Bolt">Bolt</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="connectorsGroup" style="display: none;">
+                                <label for="numberOfConnectors">Number of Connectors:</label>
+                                <input type="number" id="numberOfConnectors" min="1" step="1" placeholder="Enter number of connectors">
+                            </div>
+                        </div>
+
+                        <!-- Sub-parameters Display -->
+                        <div id="disassemblySubParameters" style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none;">
+                            <h4 style="color: #2e7d32; margin-bottom: 15px;">📊 Sub-parameters and Weights</h4>
+                            <div id="subParametersList"></div>
+                        </div>
+
+                        <!-- Calculate Button and Result -->
+                        <div style="text-align: center; margin: 20px 0;">
+                            <button type="button" class="calculate-btn" onclick="calculateEaseOfDisassembly()">
+                                🔬 Calculate Ease of Disassembly Score
+                            </button>
+                        </div>
+
+                        <div id="disassemblyResult" class="results hidden">
+                            <h4>📊 Ease of Disassembly Result</h4>
+                            <div class="score-display" id="disassemblyScore" style="font-size: 1.5em;">Score: --</div>
+                            <div id="disassemblyDetails" style="margin-top: 15px; font-size: 0.9em;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Placeholder for next parameter -->
+                    <div class="form-section" style="background: #f5f5f5; border: 2px dashed #ccc; text-align: center; padding: 40px;">
+                        <h3 style="color: #999;">📋 Next Parameter: Ease of Reassembly</h3>
+                        <p style="color: #666;">This section will be added after completing the Ease of Disassembly assessment</p>
+                    </div>
+                </form>
+
+                <div id="results" class="results hidden">
+                    <h3>📊 Assessment Results</h3>
+                    <div class="score-display" id="totalScore">Overall Score: --</div>
+                    <div class="parameter-results" id="parameterResults"></div>
+                </div>
+            </div>
+
+            <!-- Explanation Tab -->
+            <div id="explanation" class="tab-content">
+                <div class="explanation-content">
+                    <h2>📚 Reusability Assessment Framework</h2>
+                    
+                    <p>This framework evaluates the reusability potential of construction connections through a comprehensive multi-parameter assessment system. The methodology considers technical, practical, and economic factors that influence the feasibility of connection disassembly and reassembly.</p>
+
+                    <h2>🎯 Main Parameters</h2>
+
+                    <h3>1. End of Cycle Waste (Weight: 2.40)</h3>
+                    <p>Assesses the amount of material that can be reused when the connection system is disassembled. The score is calculated using:</p>
+                    <div class="formula">
+                        Score = (Reusable Area / Joint Area) × (1 / RF_material)
+                    </div>
+                    <p>Where RF_material is the reduction factor based on concrete strength class and mortar type.</p>
+
+                    <h3>2. Damage Probability (Weight: 2.65)</h3>
+                    <p>Evaluates the probability of damaging connection components during disassembly and reassembly operations, considering:</p>
+                    <ul>
+                        <li><strong>Minor Damage Probability (28%)</strong>: Easily repairable damage</li>
+                        <li><strong>Major Damage Probability (52%)</strong>: Damage requiring additional measurements</li>
+                        <li><strong>Precision (20%)</strong>: Tool precision requirements</li>
+                    </ul>
+
+                    <h3>3. Ease of Disassembly (Weight: 3.06)</h3>
+                    <p>Quantifies procedures required to disassemble the connection system, including:</p>
+                    <ul>
+                        <li><strong>Setup Time (22%)</strong>: Time to prepare tools and safety measures</li>
+                        <li><strong>Skill Level (50%)</strong>: Required operator training level</li>
+                        <li><strong>Portability (28%)</strong>: Tool transportation and mobility</li>
+                    </ul>
+
+                    <h3>4. Ease of Reassembly (Weight: 2.70)</h3>
+                    <p>Uses the same sub-parameters as disassembly but considers different tools and processes for reassembly operations.</p>
+
+                    <h3>5. Connection Complexity (Weight: 2.80)</h3>
+                    <p>Evaluates complexity during construction and deconstruction phases:</p>
+                    <ul>
+                        <li><strong>Connection Type (10%)</strong>: Force transfer mechanism</li>
+                        <li><strong>Industry Preference (30%)</strong>: Familiarity within Netherlands construction industry</li>
+                        <li><strong>Skill Level (30%)</strong>: Required expertise</li>
+                        <li><strong>Time (30%)</strong>: Total process duration</li>
+                    </ul>
+
+                    <h3>6. Additional Parameters</h3>
+                    <ul>
+                        <li><strong>Design Documentation (3.68)</strong>: Availability of structural drawings and calculations</li>
+                        <li><strong>Number of Steps and Time (2.41)</strong>: Process complexity and duration</li>
+                        <li><strong>Accessibility of Connection (1.50)</strong>: Worker access during operations</li>
+                        <li><strong>Tolerance (1.49)</strong>: Dimensional precision requirements</li>
+                        <li><strong>Prefabrication Degree (1.26)</strong>: Extent of factory production</li>
+                        <li><strong>Size (1.06)</strong>: Joint area considerations</li>
+                        <li><strong>Structural Strength (1.00)</strong>: Connection load capacity</li>
+                    </ul>
+
+                    <h2>📈 Scoring System</h2>
+                    <p>Each parameter is scored on a scale from 0 to 1, where:</p>
+                    <ul>
+                        <li><strong>1.0</strong>: Excellent reusability potential</li>
+                        <li><strong>0.75-0.99</strong>: Good reusability potential</li>
+                        <li><strong>0.5-0.74</strong>: Moderate reusability potential</li>
+                        <li><strong>0.25-0.49</strong>: Poor reusability potential</li>
+                        <li><strong>0.0-0.24</strong>: Very poor reusability potential</li
