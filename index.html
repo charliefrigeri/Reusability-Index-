@@ -11,6 +11,268 @@
             box-sizing: border-box;
         }
 
+        // Tool properties from documentation
+        const toolProperties = {
+            'Battery Disc Saw': { setupTime: 'Low', skillLevel: 'Basic', portability: 'High' },
+            'Corded Disc Saw': { setupTime: 'Low', skillLevel: 'Basic', portability: 'Medium' },
+            'Petrol Ring Saw': { setupTime: 'Low', skillLevel: 'Intermediate', portability: 'High' },
+            'Corded Ring Saw': { setupTime: 'Low', skillLevel: 'Intermediate', portability: 'Medium' },
+            'Petrol Chain Saw': { setupTime: 'Low', skillLevel: 'Intermediate', portability: 'High' },
+            'Corded Chain Saw': { setupTime: 'Low', skillLevel: 'Intermediate', portability: 'Medium' },
+            'Walk behind floor saw': { setupTime: 'Low', skillLevel: 'Intermediate', portability: 'Medium' },
+            'Automated Wall Saw': { setupTime: 'High', skillLevel: 'Intermediate', portability: 'Very Low' },
+            'Hydro blast': { setupTime: 'High', skillLevel: 'Advanced', portability: 'Low' },
+            'Blow torch': { setupTime: 'Moderate', skillLevel: 'Intermediate', portability: 'High' },
+            'Demolition Hammer': { setupTime: 'Low', skillLevel: 'Basic', portability: 'Medium' },
+            'Torque Wrench': { setupTime: 'Low', skillLevel: 'Basic', portability: 'High' },
+            'Angle Grinder': { setupTime: 'Low', skillLevel: 'Basic', portability: 'High' },
+            'Hydraulic Piston': { setupTime: 'Low', skillLevel: 'Basic', portability: 'High' },
+            'Welder': { setupTime: 'Moderate', skillLevel: 'Intermediate', portability: 'High' },
+            'Diamond Drill': { setupTime: 'Low', skillLevel: 'Basic', portability: 'High' },
+            'Impact Wrench': { setupTime: 'Low', skillLevel: 'Basic', portability: 'High' },
+            'Rotary Hammer': { setupTime: 'Low', skillLevel: 'Intermediate', portability: 'High' }
+        };
+
+        // Tool list for generation
+        const toolList = [
+            'Battery Disc Saw', 'Corded Disc Saw', 'Petrol Ring Saw', 'Corded Ring Saw',
+            'Petrol Chain Saw', 'Corded Chain Saw', 'Walk behind floor saw', 'Automated Wall Saw',
+            'Hydro blast', 'Blow torch', 'Demolition Hammer', 'Torque Wrench',
+            'Angle Grinder', 'Hydraulic Piston', 'Welder', 'Diamond Drill',
+            'Impact Wrench', 'Rotary Hammer'
+        ];
+
+        // Selected tools tracking
+        let selectedTools = {};
+
+        // Scoring functions
+        const setupTimeScores = { 'Low': 1, 'Moderate': 0.5, 'High': 0 };
+        const skillLevelScores = { 'Basic': 1, 'Intermediate': 0.5, 'Advanced': 0 };
+        const portabilityScores = { 'High': 1, 'Medium': 0.66, 'Low': 0.33, 'Very Low': 0 };
+
+        // Initialize tool selection interface
+        function initializeToolSelection() {
+            const toolGrid = document.getElementById('toolSelectionGrid');
+            if (!toolGrid) return;
+
+            toolGrid.innerHTML = '';
+            
+            toolList.forEach(tool => {
+                const toolItem = document.createElement('div');
+                toolItem.className = 'tool-item';
+                toolItem.style.cssText = `
+                    border: 2px solid #ddd;
+                    border-radius: 8px;
+                    padding: 15px;
+                    background: white;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    position: relative;
+                `;
+
+                const toolId = tool.replace(/\s+/g, '_').toLowerCase();
+                const properties = toolProperties[tool];
+
+                toolItem.innerHTML = `
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <input type="checkbox" id="tool_${toolId}" style="margin-right: 10px; transform: scale(1.2);" onchange="toggleTool('${tool}')">
+                        <label for="tool_${toolId}" style="font-weight: bold; cursor: pointer; flex: 1;">${tool}</label>
+                    </div>
+                    <div style="font-size: 0.85em; color: #666; margin-bottom: 10px;">
+                        <div>Setup: ${properties.setupTime} | Skill: ${properties.skillLevel} | Portability: ${properties.portability}</div>
+                    </div>
+                    <div id="time_input_${toolId}" style="display: none; background: #f0f8ff; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                        <label style="display: block; font-size: 0.9em; margin-bottom: 5px;">Time (minutes):</label>
+                        <input type="number" id="time_${toolId}" min="0" step="0.1" placeholder="Enter time" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                    </div>
+                `;
+
+                toolGrid.appendChild(toolItem);
+            });
+        }
+
+        function toggleTool(tool) {
+            const toolId = tool.replace(/\s+/g, '_').toLowerCase();
+            const checkbox = document.getElementById(`tool_${toolId}`);
+            const timeInput = document.getElementById(`time_input_${toolId}`);
+            const toolItem = checkbox.closest('.tool-item');
+
+            if (checkbox.checked) {
+                // Tool selected
+                selectedTools[tool] = { time: 0, properties: toolProperties[tool] };
+                timeInput.style.display = 'block';
+                toolItem.style.borderColor = '#667eea';
+                toolItem.style.backgroundColor = '#f8f9ff';
+                toolItem.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.2)';
+            } else {
+                // Tool deselected
+                delete selectedTools[tool];
+                timeInput.style.display = 'none';
+                toolItem.style.borderColor = '#ddd';
+                toolItem.style.backgroundColor = 'white';
+                toolItem.style.boxShadow = 'none';
+                document.getElementById(`time_${toolId}`).value = '';
+            }
+
+            updateSelectedToolsDisplay();
+        }
+
+        function updateSelectedToolsDisplay() {
+            const propertiesDisplay = document.getElementById('toolPropertiesDisplay');
+            const propertiesList = document.getElementById('toolPropertiesList');
+
+            if (Object.keys(selectedTools).length > 0) {
+                propertiesDisplay.style.display = 'block';
+                let html = '<div><strong>Selected Tools:</strong></div>';
+                
+                Object.keys(selectedTools).forEach(tool => {
+                    const properties = selectedTools[tool].properties;
+                    html += `
+                        <div style="margin: 10px 0; padding: 10px; background: rgba(102, 126, 234, 0.1); border-radius: 5px;">
+                            <strong>${tool}</strong><br>
+                            Setup: ${properties.setupTime} (${setupTimeScores[properties.setupTime]}) | 
+                            Skill: ${properties.skillLevel} (${skillLevelScores[properties.skillLevel]}) | 
+                            Portability: ${properties.portability} (${portabilityScores[properties.portability]})
+                        </div>
+                    `;
+                });
+                
+                propertiesList.innerHTML = html;
+            } else {
+                propertiesDisplay.style.display = 'none';
+            }
+        }
+
+        // Update the existing functions to work with multiple tools
+        function updateToolDetails() {
+            // This function is no longer needed for dropdown, but keeping for compatibility
+        }
+
+        function updateDisassemblyParameters() {
+            const connectionType = document.getElementById('disassemblyConnectionType').value;
+            const connectorsGroup = document.getElementById('connectorsGroup');
+            const subParametersDisplay = document.getElementById('disassemblySubParameters');
+            const subParametersList = document.getElementById('subParametersList');
+
+            if (connectionType) {
+                subParametersDisplay.style.display = 'block';
+                
+                if (connectionType === 'Cementitious') {
+                    connectorsGroup.style.display = 'none';
+                    subParametersList.innerHTML = `
+                        <div><strong>Setup Time:</strong> Weight 0.22</div>
+                        <div><strong>Skill Level:</strong> Weight 0.50</div>
+                        <div><strong>Portability:</strong> Weight 0.28</div>
+                        <div style="margin-top: 10px; color: #666; font-style: italic;">Formula: Σ(score × time) / Σ(time) for each parameter</div>
+                    `;
+                } else {
+                    connectorsGroup.style.display = 'flex';
+                    subParametersList.innerHTML = `
+                        <div><strong>Setup Time:</strong> Weight 0.15</div>
+                        <div><strong>Skill Level:</strong> Weight 0.48</div>
+                        <div><strong>Portability:</strong> Weight 0.22</div>
+                        <div><strong>Number of Connectors:</strong> Weight 0.15</div>
+                        <div style="margin-top: 10px; color: #666; font-style: italic;">Formula: Σ(score × time) / Σ(time) for each parameter</div>
+                    `;
+                }
+            } else {
+                connectorsGroup.style.display = 'none';
+                subParametersDisplay.style.display = 'none';
+            }
+        }
+
+        function calculateEaseOfDisassembly() {
+            try {
+                const tool = document.getElementById('disassemblyTool').value;
+                const toolTime = parseFloat(document.getElementById('toolTime').value) || 0;
+                const connectionType = document.getElementById('disassemblyConnectionType').value;
+                const numberOfConnectors = parseFloat(document.getElementById('numberOfConnectors').value) || 0;
+
+                if (!tool || !connectionType || toolTime <= 0) {
+                    document.getElementById('disassemblyResult').classList.add('hidden');
+                    return;
+                }
+
+                const properties = toolProperties[tool];
+                const setupTimeScore = setupTimeScores[properties.setupTime];
+                const skillLevelScore = skillLevelScores[properties.skillLevel];
+                const portabilityScore = portabilityScores[properties.portability];
+
+                let score = 0;
+                let details = '';
+
+                if (connectionType === 'Cementitious') {
+                    // Weights for cementitious: 0.22, 0.50, 0.28
+                    score = (setupTimeScore * 0.22) + (skillLevelScore * 0.50) + (portabilityScore * 0.28);
+                    
+                    details = `
+                        <div><strong>Calculation (Cementitious Connection):</strong></div>
+                        <div>Score = (Setup Time × 0.22) + (Skill Level × 0.50) + (Portability × 0.28)</div>
+                        <div>Score = (${setupTimeScore} × 0.22) + (${skillLevelScore} × 0.50) + (${portabilityScore} × 0.28)</div>
+                        <div>Score = ${score.toFixed(4)}</div>
+                        <div style="margin-top: 10px;">
+                            <strong>Tool:</strong> ${tool}<br>
+                            <strong>Time:</strong> ${toolTime} minutes<br>
+                            <strong>Setup Time:</strong> ${properties.setupTime} (${setupTimeScore})<br>
+                            <strong>Skill Level:</strong> ${properties.skillLevel} (${skillLevelScore})<br>
+                            <strong>Portability:</strong> ${properties.portability} (${portabilityScore})
+                        </div>
+                    `;
+                } else {
+                    // Calculate connector score
+                    let connectorScore = 1;
+                    if (connectionType === 'Other') {
+                        connectorScore = 1;
+                    } else if (connectionType === 'Screw' || connectionType === 'Bolt') {
+                        if (numberOfConnectors <= 2) {
+                            connectorScore = 1;
+                        } else if (numberOfConnectors === 3 || numberOfConnectors === 5) {
+                            connectorScore = 0.95;
+                        } else {
+                            connectorScore = 0.9;
+                        }
+                    }
+
+                    // Weights for screw/bolt/other: 0.15, 0.48, 0.22, 0.15
+                    score = (setupTimeScore * 0.15) + (skillLevelScore * 0.48) + (portabilityScore * 0.22) + (connectorScore * 0.15);
+                    
+                    details = `
+                        <div><strong>Calculation (${connectionType} Connection):</strong></div>
+                        <div>Score = (Setup Time × 0.15) + (Skill Level × 0.48) + (Portability × 0.22) + (Connectors × 0.15)</div>
+                        <div>Score = (${setupTimeScore} × 0.15) + (${skillLevelScore} × 0.48) + (${portabilityScore} × 0.22) + (${connectorScore} × 0.15)</div>
+                        <div>Score = ${score.toFixed(4)}</div>
+                        <div style="margin-top: 10px;">
+                            <strong>Tool:</strong> ${tool}<br>
+                            <strong>Time:</strong> ${toolTime} minutes<br>
+                            <strong>Setup Time:</strong> ${properties.setupTime} (${setupTimeScore})<br>
+                            <strong>Skill Level:</strong> ${properties.skillLevel} (${skillLevelScore})<br>
+                            <strong>Portability:</strong> ${properties.portability} (${portabilityScore})<br>
+                            <strong>Connectors:</strong> ${numberOfConnectors || 'N/A'} (${connectorScore})
+                        </div>
+                    `;
+                }
+
+                // Ensure score is between 0 and 1
+                score = Math.max(0, Math.min(1, score));
+
+                // Display results
+                const resultDiv = document.getElementById('disassemblyResult');
+                const scoreDiv = document.getElementById('disassemblyScore');
+                const detailsDiv = document.getElementById('disassemblyDetails');
+
+                resultDiv.classList.remove('hidden');
+                scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(score)}">${(score * 100).toFixed(1)}%</span>`;
+                detailsDiv.innerHTML = details;
+
+                // Scroll to results
+                resultDiv.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error('Error calculating ease of disassembly:', error);
+                document.getElementById('disassemblyResult').classList.add('hidden');
+            }
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
@@ -273,20 +535,6 @@
             font-family: 'Courier New', monospace;
         }
 
-        .tool-item {
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            background: white;
-            transition: all 0.3s ease;
-        }
-
-        .tool-item.selected {
-            border-color: #667eea;
-            background-color: #f8f9ff;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
-        }
-
         .hidden {
             display: none !important;
         }
@@ -467,6 +715,12 @@
                         </div>
                     </div>
 
+                    <!-- Placeholder for next parameter -->
+                    <div class="form-section" style="background: #f5f5f5; border: 2px dashed #ccc; text-align: center; padding: 40px;">
+                        <h3 style="color: #999;">📋 Next Parameter: Prefabrication Degree</h3>
+                        <p style="color: #666;">This section will be added after completing the End of Cycle Waste assessment</p>
+                    </div>
+
                     <!-- 2. Prefabrication Degree -->
                     <div class="form-section">
                         <h3>🏭 2. Prefabrication Degree Assessment</h3>
@@ -498,6 +752,12 @@
                         </div>
                     </div>
 
+                    <!-- Placeholder for next parameter -->
+                    <div class="form-section" style="background: #f5f5f5; border: 2px dashed #ccc; text-align: center; padding: 40px;">
+                        <h3 style="color: #999;">📋 Next Parameter: Damage Probability</h3>
+                        <p style="color: #666;">This section will be added after completing the Prefabrication Degree assessment</p>
+                    </div>
+
                     <!-- 3. Ease of Disassembly -->
                     <div class="form-section">
                         <h3>🔧 3. Ease of Disassembly Assessment</h3>
@@ -508,8 +768,8 @@
                             <h4 style="color: #f57c00; margin-bottom: 15px;">🛠️ Tool Selection (Select Multiple)</h4>
                             <p style="margin-bottom: 15px; color: #666; font-size: 0.9em;">Click on the tools you will use for disassembly. Time input will appear for each selected tool.</p>
                             
-                            <div id="toolsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
-                                <!-- Tools will be populated by JavaScript -->
+                            <div id="toolSelectionGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                                <!-- Tool items will be dynamically generated -->
                             </div>
                         </div>
 
@@ -536,6 +796,12 @@
                         <div id="disassemblySubParameters" style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none;">
                             <h4 style="color: #2e7d32; margin-bottom: 15px;">📊 Sub-parameters and Weights</h4>
                             <div id="subParametersList"></div>
+                        </div>
+
+                        <!-- Tool Properties Display -->
+                        <div id="toolPropertiesDisplay" style="background: #e1f5fe; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none;">
+                            <h4 style="color: #0277bd; margin-bottom: 15px;">🔍 Tool Properties</h4>
+                            <div id="toolPropertiesList"></div>
                         </div>
 
                         <!-- Calculate Button and Result -->
@@ -628,4 +894,632 @@
                         <li><strong>0.75-0.99</strong>: Good reusability potential</li>
                         <li><strong>0.5-0.74</strong>: Moderate reusability potential</li>
                         <li><strong>0.25-0.49</strong>: Poor reusability potential</li>
-                        <li><strong>0.0-0.24</strong>: Very poor reusability potential</li
+                        <li><strong>0.0-0.24</strong>: Very poor reusability potential</li>
+                    </ul>
+
+                    <p>The final score is calculated as a weighted average of all parameters, providing a comprehensive assessment of connection reusability.</p>
+
+                    <h2>🔬 Mathematical Formulations</h2>
+                    <p>The framework employs various mathematical models:</p>
+                    
+                    <h3>Damage Probability Calculations</h3>
+                    <div class="formula">
+                        P(t) = 1 - e^(-λt)
+                        P_score = ∏(1 - p_i)
+                    </div>
+
+                    <h3>Time Scoring Function</h3>
+                    <div class="formula">
+                        f(t) = {
+                            1               if t ≤ 120
+                            2 - t/120       if 120 < t ≤ 240
+                            0               if t > 240
+                        }
+                    </div>
+
+                    <h3>Tolerance Scoring</h3>
+                    <div class="formula">
+                        f(t) = {
+                            0               if t < 10 mm
+                            (t-10)/40       if 10 ≤ t ≤ 50 mm
+                            1               if t > 50 mm
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- GitHub Setup Tab -->
+            <div id="github" class="tab-content">
+                <div class="github-section">
+                    <h2>🚀 Deploy to GitHub Pages</h2>
+                    <p>Follow these steps to deploy this calculator to your GitHub account and make it accessible online:</p>
+
+                    <ol class="github-steps">
+                        <li>
+                            <strong>Create a GitHub Account</strong>
+                            <p>If you don't have one, sign up at <a href="https://github.com" target="_blank">github.com</a></p>
+                        </li>
+
+                        <li>
+                            <strong>Create a New Repository</strong>
+                            <ul>
+                                <li>Click the "+" icon in the top right corner</li>
+                                <li>Select "New repository"</li>
+                                <li>Name it: <code>reusability-calculator</code></li>
+                                <li>Make it public</li>
+                                <li>Check "Add a README file"</li>
+                                <li>Click "Create repository"</li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            <strong>Upload Your Files</strong>
+                            <p>Copy this HTML code and save it as <code>index.html</code>:</p>
+                            <div class="code-block">
+&lt;!-- Copy the entire HTML source of this page --&gt;
+&lt;!-- You can right-click → View Page Source to get the full code --&gt;
+                            </div>
+                            <p>Then upload it to your repository by clicking "Add file" → "Upload files"</p>
+                        </li>
+
+                        <li>
+                            <strong>Enable GitHub Pages</strong>
+                            <ul>
+                                <li>Go to your repository settings</li>
+                                <li>Scroll down to "Pages" section</li>
+                                <li>Under "Source", select "Deploy from a branch"</li>
+                                <li>Choose "main" branch and "/ (root)" folder</li>
+                                <li>Click "Save"</li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            <strong>Access Your Live Calculator</strong>
+                            <p>After a few minutes, your calculator will be available at:</p>
+                            <div class="code-block">
+https://yourusername.github.io/reusability-calculator
+                            </div>
+                            <p>Replace "yourusername" with your actual GitHub username</p>
+                        </li>
+
+                        <li>
+                            <strong>Optional: Custom Domain</strong>
+                            <p>You can add a custom domain by:</p>
+                            <ul>
+                                <li>Adding a CNAME file to your repository</li>
+                                <li>Configuring DNS settings with your domain provider</li>
+                                <li>Setting up the custom domain in GitHub Pages settings</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3>💡 Pro Tips:</h3>
+                        <ul>
+                            <li>Use descriptive commit messages when updating your code</li>
+                            <li>Enable branch protection rules for production deployments</li>
+                            <li>Consider using GitHub Actions for automated testing</li>
+                            <li>Add a detailed README.md file to document your project</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3>📂 Recommended Repository Structure:</h3>
+                        <div class="code-block">
+reusability-calculator/
+├── index.html          (This calculator)
+├── README.md           (Project documentation)
+├── css/
+│   └── styles.css      (Optional: External CSS)
+├── js/
+│   └── calculator.js   (Optional: External JavaScript)
+└── docs/
+    └── methodology.pdf (Optional: Technical documentation)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Material reduction factors from the documentation
+        const reductionFactors = {
+            'C12/15': { 'I': 1.82, 'IIIA': 2.03, 'IIIB': 2.29, 'IIIC': 2.50 },
+            'C20/25': { 'I': 1.69, 'IIIA': 1.98, 'IIIB': 2.23, 'IIIC': 2.44 },
+            'C30/37': { 'I': 1.57, 'IIIA': 1.85, 'IIIB': 2.09, 'IIIC': 2.30 },
+            'C40/50': { 'I': 1.46, 'IIIA': 1.74, 'IIIB': 1.96, 'IIIC': null },
+            'C45/55': { 'I': 1.44, 'IIIA': 1.70, 'IIIB': 1.90, 'IIIC': 2.10 },
+            'C50/60': { 'I': 1.28, 'IIIA': 1.53, 'IIIB': 1.75, 'IIIC': null },
+            'C55/67': { 'I': 1.38, 'IIIA': 1.58, 'IIIB': 1.60, 'IIIC': null },
+            'C60/76': { 'I': 1.29, 'IIIA': 1.52, 'IIIB': 1.64, 'IIIC': null },
+            'C70/85': { 'I': 1.10, 'IIIA': 1.27, 'IIIB': 1.37, 'IIIC': null },
+            'C80/95': { 'I': 1.04, 'IIIA': 1.15, 'IIIB': 1.08, 'IIIC': null },
+            'C90/105': { 'I': 1.04, 'IIIA': 1.08, 'IIIB': 1.04, 'IIIC': null }
+        };
+
+        // Parameter weights from the documentation
+        const weights = {
+            endOfCycleWaste: 2.40,
+            damageProb: 2.65,
+            easeDisassembly: 3.06,
+            easeReassembly: 2.70,
+            connectionComplexity: 2.80,
+            designDoc: 3.68,
+            stepsAndTime: 2.41,
+            accessibility: 1.50,
+            tolerance: 1.49,
+            prefabDegree: 1.26,
+            size: 1.06,
+            structuralStrength: 1.00
+        };
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked nav tab
+            event.target.classList.add('active');
+        }
+
+        // Constants
+        const REINFORCEMENT_REDUCTION_FACTOR = 0.2; // Updated to 0.2 as specified
+
+        function updateJointArea() {
+            try {
+                const connectionType = document.getElementById('connectionType').value;
+                const length = parseFloat(document.getElementById('length').value) || 0;
+                const width = parseFloat(document.getElementById('width').value) || 0;
+                const height = parseFloat(document.getElementById('height').value) || 0;
+
+                let jointArea = 0;
+                let reinforcementType = '';
+
+                if (connectionType === 'Wall-Wall Horizontal') {
+                    jointArea = length * width;
+                    reinforcementType = 'Number of Reinforcement';
+                } else if (connectionType === 'Column-Column') {
+                    jointArea = Math.min(length, width) * height;
+                    reinforcementType = 'Number of Reinforcement';
+                } else if (connectionType === 'Other') {
+                    jointArea = Math.min(length, width) * height;
+                    reinforcementType = 'Number + Length';
+                }
+
+                // Update displays (silently handle errors)
+                const jointAreaDisplay = document.getElementById('jointAreaDisplay');
+                const jointAreaDisplay2 = document.getElementById('jointAreaDisplay2');
+                const reinforcementTypeDisplay = document.getElementById('reinforcementTypeDisplay');
+                const reinforcementLengthGroup = document.getElementById('reinforcementLengthGroup');
+                
+                if (jointAreaDisplay) {
+                    jointAreaDisplay.textContent = jointArea > 0 ? `${jointArea.toFixed(2)} cm²` : '-- cm²';
+                }
+                
+                if (jointAreaDisplay2) {
+                    jointAreaDisplay2.textContent = jointArea > 0 ? `${jointArea.toFixed(2)} cm²` : '-- cm²';
+                }
+                
+                if (reinforcementTypeDisplay) {
+                    reinforcementTypeDisplay.textContent = reinforcementType || '--';
+                }
+
+                // Show/hide reinforcement length input based on connection type
+                if (reinforcementLengthGroup) {
+                    if (connectionType === 'Other') {
+                        reinforcementLengthGroup.style.display = 'flex';
+                    } else {
+                        reinforcementLengthGroup.style.display = 'none';
+                    }
+                }
+
+                // Update reinforcement label and input type
+                const reinforcementLabel = document.getElementById('reinforcementLabel');
+                const reinforcementInput = document.getElementById('reinforcementValue');
+                
+                if (reinforcementLabel && reinforcementInput) {
+                    if (connectionType === 'Column-Column' || connectionType === 'Wall-Wall Horizontal') {
+                        reinforcementLabel.textContent = 'Number of Reinforcement:';
+                        reinforcementInput.placeholder = "Enter 'No waste' or number (e.g., 4)";
+                    } else if (connectionType === 'Other') {
+                        reinforcementLabel.textContent = 'Number of Reinforcement:';
+                        reinforcementInput.placeholder = "Enter 'No waste' or number (e.g., 2)";
+                    } else {
+                        reinforcementLabel.textContent = 'Reinforcement:';
+                        reinforcementInput.placeholder = '';
+                    }
+                }
+            } catch (error) {
+                // Silent error handling - don't show errors to user
+                console.log('Joint area calculation error (silenced):', error);
+            }
+        }
+
+        function updateReductionFactor() {
+            try {
+                const strengthClass = document.getElementById('strengthClass').value;
+                const mortarType = document.getElementById('mortarType').value;
+                const reductionFactorDisplay = document.getElementById('reductionFactorDisplay');
+
+                if (!strengthClass || !mortarType || !reductionFactorDisplay) return;
+
+                const factor = reductionFactors[strengthClass]?.[mortarType];
+                reductionFactorDisplay.textContent = factor ? factor.toString() : '--';
+            } catch (error) {
+                console.log('Reduction factor update error (silenced):', error);
+            }
+        }
+
+        function calculateEndOfCycleWaste() {
+            try {
+                const connectionType = document.getElementById('connectionType').value;
+                const length = parseFloat(document.getElementById('length').value) || 0;
+                const width = parseFloat(document.getElementById('width').value) || 0;
+                const height = parseFloat(document.getElementById('height').value) || 0;
+                const wasteArea = parseFloat(document.getElementById('wasteArea').value) || 0;
+                const reinforcementValue = document.getElementById('reinforcementValue').value.trim();
+                const reinforcementLength = parseFloat(document.getElementById('reinforcementLength').value) || 0;
+                const reinforcementDiameter = parseFloat(document.getElementById('reinforcementDiameter').value) || 0;
+                const strengthClass = document.getElementById('strengthClass').value;
+                const mortarType = document.getElementById('mortarType').value;
+
+                // Calculate joint area in cm²
+                let jointArea = 0;
+                if (connectionType === 'Wall-Wall Horizontal') {
+                    jointArea = length * width;
+                } else if (connectionType === 'Column-Column' || connectionType === 'Other') {
+                    jointArea = Math.min(length, width) * height;
+                }
+
+                // Get reduction factor
+                const reductionFactor = reductionFactors[strengthClass]?.[mortarType];
+
+                // Check if we have all required values
+                if (!jointArea || !reductionFactor || jointArea <= 0 || reductionFactor <= 0) {
+                    document.getElementById('endOfCycleResult').classList.add('hidden');
+                    return;
+                }
+
+                let score = 0;
+                let details = '';
+
+                if (reinforcementValue.toLowerCase() === 'no waste') {
+                    // No reinforcement waste - calculate without reinforcement area
+                    score = 1 - (wasteArea / jointArea / reductionFactor);
+                    details = `
+                        <div><strong>Calculation (No Reinforcement Waste):</strong></div>
+                        <div>Score = 1 - (Waste Area / Joint Area / Reduction Factor)</div>
+                        <div>Score = 1 - (${wasteArea} / ${jointArea.toFixed(2)} / ${reductionFactor})</div>
+                        <div>Score = ${score.toFixed(4)}</div>
+                        <div style="margin-top: 10px;"><em>No reinforcement waste considered</em></div>
+                    `;
+                } else {
+                    // Calculate with reinforcement area using different logic based on connection type
+                    const reinforcementNum = parseFloat(reinforcementValue);
+                    
+                    if (isNaN(reinforcementNum) || reinforcementNum <= 0) {
+                        document.getElementById('endOfCycleResult').classList.add('hidden');
+                        return;
+                    }
+
+                    let reinforcementArea = 0;
+                    let calculationDetails = '';
+
+                    if (connectionType === 'Column-Column' || connectionType === 'Wall-Wall Horizontal') {
+                        // Formula: (diameter² × π / 4) × number / 0.2
+                        reinforcementArea = (Math.pow(reinforcementDiameter, 2) * Math.PI / 4) * reinforcementNum / REINFORCEMENT_REDUCTION_FACTOR;
+                        calculationDetails = `(${reinforcementDiameter}² × π / 4) × ${reinforcementNum} / ${REINFORCEMENT_REDUCTION_FACTOR}`;
+                    } else {
+                        // Formula for Other connections: reinforcement_length × diameter × number / 0.2
+                        if (!reinforcementLength || reinforcementLength <= 0) {
+                            document.getElementById('endOfCycleResult').classList.add('hidden');
+                            return;
+                        }
+                        reinforcementArea = reinforcementLength * 10 * reinforcementDiameter * reinforcementNum / REINFORCEMENT_REDUCTION_FACTOR; // convert cm to mm
+                        calculationDetails = `${reinforcementLength * 10} × ${reinforcementDiameter} × ${reinforcementNum} / ${REINFORCEMENT_REDUCTION_FACTOR}`;
+                    }
+
+                    const reinforcementAreaCm2 = reinforcementArea / 100; // Convert mm² to cm²
+
+                    score = 1 - (wasteArea / jointArea / reductionFactor) - (reinforcementAreaCm2 / jointArea);
+                    
+                    details = `
+                        <div><strong>Calculation with Reinforcement (${connectionType}):</strong></div>
+                        <div>Score = 1 - (Waste Area / Joint Area / Reduction Factor) - (Reinforcement Area / Joint Area)</div>
+                        <div>Reinforcement Area = ${calculationDetails}</div>
+                        <div>Reinforcement Area = ${reinforcementAreaCm2.toFixed(4)} cm²</div>
+                        <div>Score = 1 - (${wasteArea} / ${jointArea.toFixed(2)} / ${reductionFactor}) - (${reinforcementAreaCm2.toFixed(4)} / ${jointArea.toFixed(2)})</div>
+                        <div>Score = ${score.toFixed(4)}</div>
+                        <div style="margin-top: 10px;"><em>Connection type: ${connectionType}</em></div>
+                    `;
+                }
+
+                // Ensure score is between 0 and 1
+                score = Math.max(0, Math.min(1, score));
+
+                // Display results
+                const resultDiv = document.getElementById('endOfCycleResult');
+                const scoreDiv = document.getElementById('endOfCycleScore');
+                const detailsDiv = document.getElementById('endOfCycleDetails');
+
+                resultDiv.classList.remove('hidden');
+                scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(score)}">${(score * 100).toFixed(1)}%</span>`;
+                detailsDiv.innerHTML = details;
+
+                // Scroll to results
+                resultDiv.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error('Error calculating end of cycle waste:', error);
+                document.getElementById('endOfCycleResult').classList.add('hidden');
+            }
+        }
+
+        function calculatePrefabricationDegree() {
+            try {
+                const connectionType = document.getElementById('connectionType').value;
+                const length = parseFloat(document.getElementById('length').value) || 0;
+                const width = parseFloat(document.getElementById('width').value) || 0;
+                const height = parseFloat(document.getElementById('height').value) || 0;
+                const prefabricatedArea = parseFloat(document.getElementById('prefabricatedArea').value) || 0;
+
+                // Calculate joint area in cm²
+                let jointArea = 0;
+                if (connectionType === 'Wall-Wall Horizontal') {
+                    jointArea = length * width;
+                } else if (connectionType === 'Column-Column' || connectionType === 'Other') {
+                    jointArea = Math.min(length, width) * height;
+                }
+
+                // Check if we have all required values
+                if (!jointArea || jointArea <= 0) {
+                    document.getElementById('prefabricationResult').classList.add('hidden');
+                    return;
+                }
+
+                // Calculate prefabrication degree score
+                const score = Math.min(1, prefabricatedArea / jointArea);
+                
+                const details = `
+                    <div><strong>Calculation:</strong></div>
+                    <div>Prefabrication Degree Score = Prefabricated Area / Joint Area</div>
+                    <div>Score = ${prefabricatedArea} / ${jointArea.toFixed(2)}</div>
+                    <div>Score = ${score.toFixed(4)}</div>
+                    <div style="margin-top: 10px;"><em>Score is capped at 1.0 (100%)</em></div>
+                `;
+
+                // Display results
+                const resultDiv = document.getElementById('prefabricationResult');
+                const scoreDiv = document.getElementById('prefabricationScore');
+                const detailsDiv = document.getElementById('prefabricationDetails');
+
+                resultDiv.classList.remove('hidden');
+                scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(score)}">${(score * 100).toFixed(1)}%</span>`;
+                detailsDiv.innerHTML = details;
+
+                // Scroll to results
+                resultDiv.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error('Error calculating prefabrication degree:', error);
+                document.getElementById('prefabricationResult').classList.add('hidden');
+            }
+        }
+
+        function calculateDamageProb() {
+            const damageLevel = document.getElementById('damageLevel').value;
+            
+            const damageParams = {
+                'low': { minor: 0.2, major: 0.1, precision: 0.9 },
+                'moderate': { minor: 0.4, major: 0.2, precision: 0.6 },
+                'high': { minor: 0.6, major: 0.3, precision: 0.3 },
+                'very-high': { minor: 0.8, major: 0.3, precision: 0.3 }
+            };
+
+            if (!damageParams[damageLevel]) return 0;
+
+            const params = damageParams[damageLevel];
+            
+            // Calculate damage probabilities (simplified version)
+            const minorDamage = 1 - params.minor;
+            const majorDamage = 1 - params.major;
+            const precision = params.precision;
+
+            // Weighted combination
+            return (minorDamage * 0.28) + (majorDamage * 0.52) + (precision * 0.20);
+        }
+
+        function calculateEaseScore() {
+            const setupTime = document.getElementById('setupTime').value;
+            const skillLevel = document.getElementById('skillLevel').value;
+            const portability = document.getElementById('portability').value;
+
+            const setupScores = { 'low': 1, 'medium': 0.5, 'high': 0 };
+            const skillScores = { 'basic': 1, 'intermediate': 0.5, 'advanced': 0 };
+            const portabilityScores = { 'high': 1, 'medium': 0.66, 'low': 0.33, 'very-low': 0 };
+
+            if (!setupTime || !skillLevel || !portability) return 0;
+
+            return (setupScores[setupTime] * 0.22) + 
+                   (skillScores[skillLevel] * 0.50) + 
+                   (portabilityScores[portability] * 0.28);
+        }
+
+        function calculateTimeScore() {
+            const disTime = parseFloat(document.getElementById('disassemblyTime').value) || 0;
+            const reassTime = parseFloat(document.getElementById('reassemblyTime').value) || 0;
+            const totalTime = disTime + reassTime;
+
+            if (totalTime <= 120) return 1;
+            if (totalTime <= 240) return 2 - (totalTime / 120);
+            return 0;
+        }
+
+        function calculateStepsScore() {
+            const steps = parseFloat(document.getElementById('numberOfSteps').value) || 0;
+
+            if (steps <= 15) return 1;
+            if (steps < 60) return (60 - steps) / 45;
+            return 0;
+        }
+
+        function calculateToleranceScore() {
+            const tolerance = parseFloat(document.getElementById('tolerance').value) || 0;
+
+            if (tolerance < 10) return 0;
+            if (tolerance <= 50) return (tolerance - 10) / 40;
+            return 1;
+        }
+
+        function calculateSizeScore() {
+            const jointArea = calculateJointArea();
+
+            if (jointArea <= 600) return 1;
+            if (jointArea < 2500) return (2500 - jointArea) / 1900;
+            return 0;
+        }
+
+        function calculateAccessibilityScore() {
+            const accessibility = document.getElementById('accessibility').value;
+            
+            const accessibilityScores = {
+                'accessible-dfd': 1,
+                'partially-accessible-dfd': 0.75,
+                'non-accessible-dfd': 0.5,
+                'partially-accessible-standard': 0.25,
+                'non-accessible-standard': 0
+            };
+
+            return accessibilityScores[accessibility] || 0;
+        }
+
+        function calculatePrefabScore() {
+            const prefabArea = parseFloat(document.getElementById('prefabArea').value) || 0;
+            const jointArea = calculateJointArea();
+
+            if (jointArea === 0) return 0;
+            return Math.min(1, prefabArea / jointArea);
+        }
+
+        document.getElementById('assessmentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Calculate individual parameter scores
+            const scores = {
+                endOfCycleWaste: calculateEndOfCycleWaste(),
+                damageProb: calculateDamageProb(),
+                easeDisassembly: calculateEaseScore(),
+                easeReassembly: calculateEaseScore(), // Same calculation, different tools in practice
+                connectionComplexity: 0.5, // Simplified - would need more inputs for full calculation
+                designDoc: 0.8, // Assumed value - would need document availability input
+                stepsAndTime: (calculateStepsScore() * 0.5) + (calculateTimeScore() * 0.5),
+                accessibility: calculateAccessibilityScore(),
+                tolerance: calculateToleranceScore(),
+                prefabDegree: calculatePrefabScore(),
+                size: calculateSizeScore(),
+                structuralStrength: 0.7 // Assumed value - would need structural analysis inputs
+            };
+
+            // Calculate weighted total score
+            let totalWeightedScore = 0;
+            let totalWeight = 0;
+
+            for (const [param, score] of Object.entries(scores)) {
+                const weight = weights[param];
+                totalWeightedScore += score * weight;
+                totalWeight += weight;
+            }
+
+            const finalScore = totalWeightedScore / totalWeight;
+
+            // Display results
+            displayResults(finalScore, scores);
+        });
+
+        function displayResults(finalScore, scores) {
+            const resultsDiv = document.getElementById('results');
+            const totalScoreDiv = document.getElementById('totalScore');
+            const parameterResultsDiv = document.getElementById('parameterResults');
+
+            // Show results
+            resultsDiv.classList.remove('hidden');
+
+            // Display total score
+            const percentage = (finalScore * 100).toFixed(1);
+            const rating = getRating(finalScore);
+            totalScoreDiv.innerHTML = `
+                Overall Reusability Score: <span style="color: ${getRatingColor(finalScore)}">${percentage}%</span>
+                <br><small>${rating}</small>
+            `;
+
+            // Display parameter scores
+            parameterResultsDiv.innerHTML = '';
+            for (const [param, score] of Object.entries(scores)) {
+                const paramDiv = document.createElement('div');
+                paramDiv.className = 'parameter-result';
+                paramDiv.innerHTML = `
+                    <strong>${getParameterName(param)}</strong><br>
+                    Score: ${(score * 100).toFixed(1)}%<br>
+                    Weight: ${weights[param].toFixed(2)}
+                `;
+                parameterResultsDiv.appendChild(paramDiv);
+            }
+
+            // Scroll to results
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function getRating(score) {
+            if (score >= 0.75) return "🟢 Excellent Reusability Potential";
+            if (score >= 0.5) return "🟡 Good Reusability Potential";
+            if (score >= 0.25) return "🟠 Moderate Reusability Potential";
+            return "🔴 Poor Reusability Potential";
+        }
+
+        function getRatingColor(score) {
+            if (score >= 0.75) return "#4CAF50";
+            if (score >= 0.5) return "#FF9800";
+            if (score >= 0.25) return "#FF5722";
+            return "#F44336";
+        }
+
+        function getParameterName(param) {
+            const names = {
+                endOfCycleWaste: "End of Cycle Waste",
+                damageProb: "Damage Probability",
+                easeDisassembly: "Ease of Disassembly",
+                easeReassembly: "Ease of Reassembly",
+                connectionComplexity: "Connection Complexity",
+                designDoc: "Design Documentation",
+                stepsAndTime: "Steps and Time",
+                accessibility: "Accessibility",
+                tolerance: "Tolerance",
+                prefabDegree: "Prefabrication Degree",
+                size: "Size",
+                structuralStrength: "Structural Strength"
+            };
+            return names[param] || param;
+        }
+
+        // Auto-calculate joint area when inputs change
+        ['connectionType', 'length', 'width', 'height'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                const jointArea = calculateJointArea();
+                if (jointArea > 0) {
+                    console.log(`Joint Area: ${jointArea.toFixed(2)} cm²`);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
