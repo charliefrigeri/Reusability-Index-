@@ -5,117 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Construction Connection Reusability Assessment</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+       <script>
+/* ① tool data that was stuck inside <style> */
+const toolProperties = {
+  "Battery Disc Saw":  {setupTime:"Low",skillLevel:"Basic",       portability:"High"},
+  "Corded Disc Saw":   {setupTime:"Low",skillLevel:"Basic",       portability:"Medium"},
+  "Petrol Ring Saw":   {setupTime:"Low",skillLevel:"Intermediate",portability:"High"},
+  "Corded Ring Saw":   {setupTime:"Low",skillLevel:"Intermediate",portability:"Medium"},
+  "Petrol Chain Saw":  {setupTime:"Low",skillLevel:"Intermediate",portability:"High"},
+  "Corded Chain Saw":  {setupTime:"Low",skillLevel:"Intermediate",portability:"Medium"},
+  "Walk behind floor saw":{setupTime:"Low",skillLevel:"Intermediate",portability:"Medium"},
+  "Automated Wall Saw":   {setupTime:"High",skillLevel:"Intermediate",portability:"Very Low"},
+  "Hydro blast":          {setupTime:"High",skillLevel:"Advanced",  portability:"Low"},
+  "Blow torch":           {setupTime:"Moderate",skillLevel:"Intermediate",portability:"High"},
+  "Demolition Hammer":    {setupTime:"Low",skillLevel:"Basic",       portability:"Medium"},
+  "Torque Wrench":        {setupTime:"Low",skillLevel:"Basic",       portability:"High"},
+  "Angle Grinder":        {setupTime:"Low",skillLevel:"Basic",       portability:"High"},
+  "Hydraulic Piston":     {setupTime:"Low",skillLevel:"Basic",       portability:"High"},
+  "Welder":               {setupTime:"Moderate",skillLevel:"Intermediate",portability:"High"},
+  "Diamond Drill":        {setupTime:"Low",skillLevel:"Basic",       portability:"High"},
+  "Impact Wrench":        {setupTime:"Low",skillLevel:"Basic",       portability:"High"},
+  "Rotary Hammer":        {setupTime:"Low",skillLevel:"Intermediate",portability:"High"}
+};
+const toolList = Object.keys(toolProperties);
+let selectedTools = {};
+const setupTimeScores = {Low:1,Moderate:0.5,High:0};
+const skillLevelScores = {Basic:1,Intermediate:0.5,Advanced:0};
+const portabilityScores = {High:1,Medium:0.66,Low:0.33,"Very Low":0};
 
-        // Tool properties from documentation
-        const toolProperties = {
-            'Battery Disc Saw': { setupTime: 'Low', skillLevel: 'Basic', portability: 'High' },
-            'Corded Disc Saw': { setupTime: 'Low', skillLevel: 'Basic', portability: 'Medium' },
-            'Petrol Ring Saw': { setupTime: 'Low', skillLevel: 'Intermediate', portability: 'High' },
-            'Corded Ring Saw': { setupTime: 'Low', skillLevel: 'Intermediate', portability: 'Medium' },
-            'Petrol Chain Saw': { setupTime: 'Low', skillLevel: 'Intermediate', portability: 'High' },
-            'Corded Chain Saw': { setupTime: 'Low', skillLevel: 'Intermediate', portability: 'Medium' },
-            'Walk behind floor saw': { setupTime: 'Low', skillLevel: 'Intermediate', portability: 'Medium' },
-            'Automated Wall Saw': { setupTime: 'High', skillLevel: 'Intermediate', portability: 'Very Low' },
-            'Hydro blast': { setupTime: 'High', skillLevel: 'Advanced', portability: 'Low' },
-            'Blow torch': { setupTime: 'Moderate', skillLevel: 'Intermediate', portability: 'High' },
-            'Demolition Hammer': { setupTime: 'Low', skillLevel: 'Basic', portability: 'Medium' },
-            'Torque Wrench': { setupTime: 'Low', skillLevel: 'Basic', portability: 'High' },
-            'Angle Grinder': { setupTime: 'Low', skillLevel: 'Basic', portability: 'High' },
-            'Hydraulic Piston': { setupTime: 'Low', skillLevel: 'Basic', portability: 'High' },
-            'Welder': { setupTime: 'Moderate', skillLevel: 'Intermediate', portability: 'High' },
-            'Diamond Drill': { setupTime: 'Low', skillLevel: 'Basic', portability: 'High' },
-            'Impact Wrench': { setupTime: 'Low', skillLevel: 'Basic', portability: 'High' },
-            'Rotary Hammer': { setupTime: 'Low', skillLevel: 'Intermediate', portability: 'High' }
-        };
+/* ② build the grid */
+function initializeToolSelection(){
+  const grid = document.getElementById('toolSelectionGrid');
+  if(!grid) return;
+  grid.innerHTML = '';
+  toolList.forEach(tool=>{
+    const id = tool.replace(/\s+/g,'_').toLowerCase();
+    grid.insertAdjacentHTML('beforeend',`
+      <div class="tool-item" style="border:2px solid #ddd;border-radius:8px;padding:15px;background:#fff;cursor:pointer;transition:.3s;position:relative;">
+        <div style="display:flex;align-items:center;margin-bottom:10px;">
+          <input type="checkbox" id="tool_${id}" style="margin-right:10px;transform:scale(1.2);" />
+          <label for="tool_${id}" style="font-weight:bold;cursor:pointer;flex:1;">${tool}</label>
+        </div>
+        <div style="font-size:.85em;color:#666;margin-bottom:10px;">
+          Setup:${toolProperties[tool].setupTime} |
+          Skill:${toolProperties[tool].skillLevel} |
+          Portability:${toolProperties[tool].portability}
+        </div>
+        <div id="time_input_${id}" class="hidden"
+             style="background:#f0f8ff;padding:10px;border-radius:5px;margin-top:10px;">
+          <label style="display:block;font-size:.9em;margin-bottom:5px;">Time (minutes):</label>
+          <input type="number" id="time_${id}" min="0" step="0.1"
+                 style="width:100%;padding:5px;border:1px solid #ccc;border-radius:3px;">
+        </div>
+      </div>`);
+    document.getElementById('tool_'+id)
+            .addEventListener('change',()=>toggleTool(tool));
+  });
+}
 
-        // Tool list for generation
-        const toolList = [
-            'Battery Disc Saw', 'Corded Disc Saw', 'Petrol Ring Saw', 'Corded Ring Saw',
-            'Petrol Chain Saw', 'Corded Chain Saw', 'Walk behind floor saw', 'Automated Wall Saw',
-            'Hydro blast', 'Blow torch', 'Demolition Hammer', 'Torque Wrench',
-            'Angle Grinder', 'Hydraulic Piston', 'Welder', 'Diamond Drill',
-            'Impact Wrench', 'Rotary Hammer'
-        ];
+/* ③ checkbox handler */
+function toggleTool(tool){
+  const id  = tool.replace(/\s+/g,'_').toLowerCase();
+  const cb  = document.getElementById('tool_'+id);
+  const box = document.getElementById('time_input_'+id);
+  const card= cb.closest('.tool-item');
 
-        // Selected tools tracking
-        let selectedTools = {};
+  if(cb.checked){
+    selectedTools[tool]={time:0,properties:toolProperties[tool]};
+    box.classList.remove('hidden');
+    card.style.borderColor='#667eea';
+    card.style.background='#f8f9ff';
+    card.style.boxShadow='0 2px 8px rgba(102,126,234,.2)';
+  }else{
+    delete selectedTools[tool];
+    box.classList.add('hidden');
+    card.style.borderColor='#ddd';
+    card.style.background='#fff';
+    card.style.boxShadow='none';
+    document.getElementById('time_'+id).value='';
+  }
 
-        // Scoring functions
-        const setupTimeScores = { 'Low': 1, 'Moderate': 0.5, 'High': 0 };
-        const skillLevelScores = { 'Basic': 1, 'Intermediate': 0.5, 'Advanced': 0 };
-        const portabilityScores = { 'High': 1, 'Medium': 0.66, 'Low': 0.33, 'Very Low': 0 };
-
-        // Initialize tool selection interface
-        function initializeToolSelection() {
-            const toolGrid = document.getElementById('toolSelectionGrid');
-            if (!toolGrid) return;
-
-            toolGrid.innerHTML = '';
-            
-            toolList.forEach(tool => {
-                const toolItem = document.createElement('div');
-                toolItem.className = 'tool-item';
-                toolItem.style.cssText = `
-                    border: 2px solid #ddd;
-                    border-radius: 8px;
-                    padding: 15px;
-                    background: white;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    position: relative;
-                `;
-
-                const toolId = tool.replace(/\s+/g, '_').toLowerCase();
-                const properties = toolProperties[tool];
-
-                toolItem.innerHTML = `
-                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <input type="checkbox" id="tool_${toolId}" style="margin-right: 10px; transform: scale(1.2);" onchange="toggleTool('${tool}')">
-                        <label for="tool_${toolId}" style="font-weight: bold; cursor: pointer; flex: 1;">${tool}</label>
-                    </div>
-                    <div style="font-size: 0.85em; color: #666; margin-bottom: 10px;">
-                        <div>Setup: ${properties.setupTime} | Skill: ${properties.skillLevel} | Portability: ${properties.portability}</div>
-                    </div>
-                    <div id="time_input_${toolId}" style="display: none; background: #f0f8ff; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                        <label style="display: block; font-size: 0.9em; margin-bottom: 5px;">Time (minutes):</label>
-                        <input type="number" id="time_${toolId}" min="0" step="0.1" placeholder="Enter time" style="width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                    </div>
-                `;
-
-                toolGrid.appendChild(toolItem);
-            });
-        }
-
-        function toggleTool(tool) {
-            const toolId = tool.replace(/\s+/g, '_').toLowerCase();
-            const checkbox = document.getElementById(`tool_${toolId}`);
-            const timeInput = document.getElementById(`time_input_${toolId}`);
-            const toolItem = checkbox.closest('.tool-item');
-
-            if (checkbox.checked) {
-                // Tool selected
-                selectedTools[tool] = { time: 0, properties: toolProperties[tool] };
-                timeInput.style.display = 'block';
-                toolItem.style.borderColor = '#667eea';
-                toolItem.style.backgroundColor = '#f8f9ff';
-                toolItem.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.2)';
-            } else {
-                // Tool deselected
-                delete selectedTools[tool];
-                timeInput.style.display = 'none';
-                toolItem.style.borderColor = '#ddd';
-                toolItem.style.backgroundColor = 'white';
-                toolItem.style.boxShadow = 'none';
-                document.getElementById(`time_${toolId}`).value = '';
-            }
-
-            updateSelectedToolsDisplay();
-        }
+  if(typeof updateSelectedToolsDisplay==='function') updateSelectedToolsDisplay();
+}
+window.toggleTool = toggleTool;
 
         function updateSelectedToolsDisplay() {
             const propertiesDisplay = document.getElementById('toolPropertiesDisplay');
