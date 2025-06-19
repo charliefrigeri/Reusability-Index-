@@ -438,6 +438,122 @@
                             <div id="damageProbabilityDetails" class="result-details"></div>
                         </div>
                     </div>
+
+                    <!-- 6. Connection Complexity Assessment -->
+                    <div class="form-section">
+                        <h3>🔗 6. Connection Complexity Assessment</h3>
+                        <p class="section-description">This parameter evaluates the overall complexity of the connection system based on connection type, industry preference, required skills, and total operation time.</p>
+                        
+                        <!-- Connection Type -->
+                        <div class="subsection connection-section">
+                            <h4>🔧 Connection Type</h4>
+                            <div class="form-group">
+                                <label for="complexityConnectionType">Connection Type:</label>
+                                <select id="complexityConnectionType" required>
+                                    <option value="">Select Connection Type</option>
+                                    <option value="Pinned">Pinned Connection</option>
+                                    <option value="Semi-Rigid">Semi-Rigid Connection</option>
+                                    <option value="Rigid">Rigid Connection</option>
+                                </select>
+                            </div>
+                            <div class="form-group result-display">
+                                <label>Connection Type Score:</label>
+                                <span id="connectionTypeScoreDisplay">--</span>
+                            </div>
+                        </div>
+
+                        <!-- Industry Preference -->
+                        <div class="subsection" style="background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); border-left: 4px solid #4caf50;">
+                            <h4>🏭 Industry Preference</h4>
+                            <div class="form-group">
+                                <label for="industryPreference">Industry Preference:</label>
+                                <select id="industryPreference" required>
+                                    <option value="">Select Industry Preference</option>
+                                    <option value="Common">Common (Widely used in industry)</option>
+                                    <option value="Less Common">Less Common (Moderately used)</option>
+                                    <option value="Not Common">Not Common (Rarely used)</option>
+                                </select>
+                            </div>
+                            <div class="form-group result-display">
+                                <label>Industry Preference Score:</label>
+                                <span id="industryPreferenceScoreDisplay">--</span>
+                            </div>
+                        </div>
+
+                        <!-- Time Calculation -->
+                        <div class="subsection" style="background: linear-gradient(135deg, #fff8e1 0%, #fff3c4 100%); border-left: 4px solid #ffb74d;">
+                            <h4>⏱️ Total Operation Time</h4>
+                            <div class="form-group">
+                                <label for="disassemblyTime">Disassembly Time (minutes):</label>
+                                <input type="number" id="disassemblyTime" min="0" step="0.1" placeholder="Enter disassembly time" onchange="calculateTotalTime()">
+                            </div>
+                            <div class="form-group">
+                                <label for="reassemblyTime">Reassembly Time (minutes):</label>
+                                <input type="number" id="reassemblyTime" min="0" step="0.1" placeholder="Enter reassembly time" onchange="calculateTotalTime()">
+                            </div>
+                            <div class="form-group result-display">
+                                <label>Total Time:</label>
+                                <span id="totalTimeDisplay">-- minutes</span>
+                            </div>
+                            <div class="form-group result-display">
+                                <label>Time Score:</label>
+                                <span id="timeScoreDisplay">--</span>
+                            </div>
+                        </div>
+
+                        <!-- Skill Level (from previous calculations) -->
+                        <div class="subsection" style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); border-left: 4px solid #9c27b0;">
+                            <h4>🎯 Specialized Tools/Skill Level</h4>
+                            <p style="font-style: italic; margin-bottom: 15px;">This score is automatically calculated from your selected disassembly and reassembly tools (Sections 3 & 4).</p>
+                            <div class="form-group result-display">
+                                <label>Combined Skill Level Score:</label>
+                                <span id="combinedSkillLevelDisplay">--</span>
+                            </div>
+                            <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                                💡 <strong>Note:</strong> Select tools in Sections 3 & 4 and enter times to calculate this automatically.
+                            </p>
+                        </div>
+
+                        <!-- Weights Display -->
+                        <div class="subsection" style="background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); border-left: 4px solid #00bcd4;">
+                            <h4>⚖️ Component Weights</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0;">
+                                <div style="background: rgba(255,255,255,0.7); padding: 10px; border-radius: 5px;">
+                                    <strong>Connection Type:</strong> 30%<br>
+                                    <small>Pinned = 1.0, Semi-Rigid = 0.5, Rigid = 0.0</small>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.7); padding: 10px; border-radius: 5px;">
+                                    <strong>Industry Preference:</strong> 30%<br>
+                                    <small>Common = 1.0, Less Common = 0.5, Not Common = 0.0</small>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.7); padding: 10px; border-radius: 5px;">
+                                    <strong>Specialized Tools/Skill:</strong> 30%<br>
+                                    <small>Calculated from selected tools</small>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.7); padding: 10px; border-radius: 5px;">
+                                    <strong>Time:</strong> 10%<br>
+                                    <small>≤120min = 1.0, >240min = 0.0, linear between</small>
+                                </div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.9); padding: 15px; border-radius: 5px; margin-top: 15px;">
+                                <strong>Final Formula:</strong><br>
+                                <code>Score = (Connection Type × 0.30) + (Industry Preference × 0.30) + (Skill Level × 0.30) + (Time × 0.10)</code>
+                            </div>
+                        </div>
+
+                        <!-- Calculate Button and Result -->
+                        <div class="button-container">
+                            <button type="button" class="calculate-btn" onclick="calculateConnectionComplexity()">
+                                🔬 Calculate Connection Complexity Score
+                            </button>
+                        </div>
+
+                        <div id="connectionComplexityResult" class="results hidden">
+                            <h4>📊 Connection Complexity Result</h4>
+                            <div class="score-display" id="connectionComplexityScore">Score: --</div>
+                            <div id="connectionComplexityDetails" class="result-details"></div>
+                        </div>
+                    </div>
                 </form>
             </div>
 
