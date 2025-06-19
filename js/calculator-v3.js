@@ -1,7 +1,7 @@
-// Construction Connection Reusability Assessment Calculator v3.2
-// Fixed implementation to resolve all syntax and reference errors
+// Construction Connection Reusability Assessment Calculator v3.3
+// Clean implementation without syntax errors
 
-console.log('Loading calculator-v3.js - Version 3.2');
+console.log('Loading calculator-v3.js - Version 3.3');
 
 // Score mappings (DEFINED FIRST)
 const setupTimeScores = { "Low": 1, "Moderate": 0.5, "High": 0 };
@@ -81,6 +81,25 @@ function getDamageClass(level) {
     }
 }
 
+function getRatingColor(score) {
+    if (score >= 0.75) return "#4CAF50";
+    if (score >= 0.5) return "#FFC107";
+    if (score >= 0.25) return "#FF9800";
+    return "#F44336";
+}
+
+// Tab switching functionality
+function showTab(tabName) {
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => tab.classList.remove('active'));
+    
+    const navTabs = document.querySelectorAll('.nav-tab');
+    navTabs.forEach(tab => tab.classList.remove('active'));
+    
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+}
+
 // Connection Complexity scoring functions
 function calculateConnectionTypeScore(connectionType) {
     const scores = {
@@ -103,7 +122,7 @@ function calculateIndustryPreferenceScore(preference) {
 function calculateTimeScore(totalTime) {
     if (totalTime <= 120) return 1.0;
     if (totalTime >= 240) return 0.0;
-    return (240 - totalTime) / 120; // Linear interpolation between 120 and 240
+    return (240 - totalTime) / 120;
 }
 
 function calculateTotalTime() {
@@ -123,11 +142,11 @@ function calculateTotalTime() {
         timeScoreDisplay.textContent = timeScore.toFixed(3);
     }
     
+    updateCombinedSkillLevelScore();
     return totalTime;
 }
 
 function updateConnectionComplexityScores() {
-    // Update Connection Type Score
     const connectionType = document.getElementById('complexityConnectionType').value;
     const connectionTypeScore = calculateConnectionTypeScore(connectionType);
     const connectionTypeScoreDisplay = document.getElementById('connectionTypeScoreDisplay');
@@ -136,7 +155,6 @@ function updateConnectionComplexityScores() {
         connectionTypeScoreDisplay.textContent = connectionType ? connectionTypeScore.toFixed(3) : '--';
     }
     
-    // Update Industry Preference Score
     const industryPreference = document.getElementById('industryPreference').value;
     const industryPreferenceScore = calculateIndustryPreferenceScore(industryPreference);
     const industryPreferenceScoreDisplay = document.getElementById('industryPreferenceScoreDisplay');
@@ -145,7 +163,6 @@ function updateConnectionComplexityScores() {
         industryPreferenceScoreDisplay.textContent = industryPreference ? industryPreferenceScore.toFixed(3) : '--';
     }
     
-    // Update Combined Skill Level Score
     updateCombinedSkillLevelScore();
 }
 
@@ -154,7 +171,6 @@ function updateCombinedSkillLevelScore() {
     
     if (!combinedSkillLevelDisplay) return;
     
-    // Check if we have tools selected with times
     const hasDisassemblyTools = Object.keys(selectedTools).length > 0;
     const hasReassemblyTools = Object.keys(selectedReassemblyTools).length > 0;
     
@@ -163,7 +179,6 @@ function updateCombinedSkillLevelScore() {
         return;
     }
     
-    // Calculate weighted skill level for disassembly tools
     let disassemblySkillScore = 0;
     let disassemblyTotalTime = 0;
     let hasDisassemblyTimes = true;
@@ -183,7 +198,6 @@ function updateCombinedSkillLevelScore() {
         disassemblySkillScore += skillLevelScores[props.skillLevel] * time;
     });
     
-    // Calculate weighted skill level for reassembly tools
     let reassemblySkillScore = 0;
     let reassemblyTotalTime = 0;
     let hasReassemblyTimes = true;
@@ -208,11 +222,8 @@ function updateCombinedSkillLevelScore() {
         return;
     }
     
-    // Calculate weighted averages
     const avgDisassemblySkill = disassemblySkillScore / disassemblyTotalTime;
     const avgReassemblySkill = reassemblySkillScore / reassemblyTotalTime;
-    
-    // Combined skill level (average of disassembly and reassembly)
     const combinedSkillLevel = (avgDisassemblySkill + avgReassemblySkill) / 2;
     
     combinedSkillLevelDisplay.textContent = combinedSkillLevel.toFixed(3);
@@ -225,7 +236,6 @@ function calculateConnectionComplexity() {
         const disassemblyTime = parseFloat(document.getElementById('disassemblyTime').value) || 0;
         const reassemblyTime = parseFloat(document.getElementById('reassemblyTime').value) || 0;
         
-        // Validate inputs
         if (!connectionType) {
             alert('Please select a connection type');
             return;
@@ -246,13 +256,11 @@ function calculateConnectionComplexity() {
             return;
         }
         
-        // Calculate component scores
         const connectionTypeScore = calculateConnectionTypeScore(connectionType);
         const industryPreferenceScore = calculateIndustryPreferenceScore(industryPreference);
         const totalTime = disassemblyTime + reassemblyTime;
         const timeScore = calculateTimeScore(totalTime);
         
-        // Get combined skill level score
         const combinedSkillLevelDisplay = document.getElementById('combinedSkillLevelDisplay');
         const combinedSkillLevelText = combinedSkillLevelDisplay.textContent;
         
@@ -263,15 +271,12 @@ function calculateConnectionComplexity() {
         
         const skillLevelScore = parseFloat(combinedSkillLevelText);
         
-        // Calculate weighted final score
         const finalScore = (connectionTypeScore * 0.30) + 
                           (industryPreferenceScore * 0.30) + 
                           (skillLevelScore * 0.30) + 
                           (timeScore * 0.10);
         
-        // Ensure score is between 0 and 1
         const boundedScore = Math.max(0, Math.min(1, finalScore));
-        
         calculationResults.connectionComplexity = boundedScore;
         
         const resultDiv = document.getElementById('connectionComplexityResult');
@@ -288,15 +293,7 @@ function calculateConnectionComplexity() {
             <div>• Industry Preference (${industryPreference}): ${industryPreferenceScore.toFixed(3)} × 0.30 = ${(industryPreferenceScore * 0.30).toFixed(3)}</div>
             <div>• Specialized Tools/Skill Level: ${skillLevelScore.toFixed(3)} × 0.30 = ${(skillLevelScore * 0.30).toFixed(3)}</div>
             <div>• Time (${totalTime.toFixed(1)} min): ${timeScore.toFixed(3)} × 0.10 = ${(timeScore * 0.10).toFixed(3)}</div>
-            
-            <div style="margin-top: 15px;"><strong>Time Breakdown:</strong></div>
-            <div>• Disassembly Time: ${disassemblyTime.toFixed(1)} minutes</div>
-            <div>• Reassembly Time: ${reassemblyTime.toFixed(1)} minutes</div>
-            <div>• Total Time: ${totalTime.toFixed(1)} minutes</div>
-            
-            <div style="margin-top: 15px;"><strong>Final Calculation:</strong></div>
-            <div>Score = ${(connectionTypeScore * 0.30).toFixed(3)} + ${(industryPreferenceScore * 0.30).toFixed(3)} + ${(skillLevelScore * 0.30).toFixed(3)} + ${(timeScore * 0.10).toFixed(3)}</div>
-            <div><strong>Final Score = ${(boundedScore * 100).toFixed(1)}%</strong></div>
+            <div style="margin-top: 15px;"><strong>Final Score = ${(boundedScore * 100).toFixed(1)}%</strong></div>
         `;
         
         resultDiv.scrollIntoView({ behavior: 'smooth' });
@@ -305,24 +302,6 @@ function calculateConnectionComplexity() {
         console.error('Error calculating connection complexity:', error);
         alert('Error in connection complexity calculation. Please check your inputs.');
     }
-}
-
-function getRatingColor(score) {
-    if (score >= 0.75) return "#4CAF50";
-    if (score >= 0.5) return "#FFC107";
-    if (score >= 0.25) return "#FF9800";
-    return "#F44336";
-}
-
-function showTab(tabName) {
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(tab => tab.classList.remove('active'));
-    
-    const navTabs = document.querySelectorAll('.nav-tab');
-    navTabs.forEach(tab => tab.classList.remove('active'));
-    
-    document.getElementById(tabName).classList.add('active');
-    event.target.classList.add('active');
 }
 
 // Initialize disassembly tools
@@ -352,7 +331,7 @@ function initializeToolSelection() {
             </div>
             <div id="time_${id}" class="time-input hidden">
                 <label>Time (minutes):</label>
-                <input type="number" id="time_input_${id}" min="0" step="0.1" placeholder="Enter time">
+                <input type="number" id="time_input_${id}" min="0" step="0.1" placeholder="Enter time" onchange="updateCombinedSkillLevelScore()">
             </div>
         `;
         
@@ -389,7 +368,7 @@ function initializeReassemblyToolSelection() {
             </div>
             <div id="time_${id}" class="time-input hidden">
                 <label>Time (minutes):</label>
-                <input type="number" id="time_input_${id}" min="0" step="0.1" placeholder="Enter time">
+                <input type="number" id="time_input_${id}" min="0" step="0.1" placeholder="Enter time" onchange="updateCombinedSkillLevelScore()">
             </div>
         `;
         
@@ -397,6 +376,30 @@ function initializeReassemblyToolSelection() {
     });
     
     setTimeout(() => {
+        initializeReassemblyToolSelection();
+        console.log('All initialization complete v3.3');
+    }, 300);
+});
+
+// Make functions globally accessible
+window.showTab = showTab;
+window.updateJointArea = updateJointArea;
+window.updateReductionFactor = updateReductionFactor;
+window.calculateReinforcementArea = calculateReinforcementArea;
+window.toggleNoWaste = toggleNoWaste;
+window.calculateEndOfCycleWaste = calculateEndOfCycleWaste;
+window.calculatePrefabricationDegree = calculatePrefabricationDegree;
+window.updateDisassemblyParameters = updateDisassemblyParameters;
+window.calculateEaseOfDisassembly = calculateEaseOfDisassembly;
+window.calculateEaseOfReassembly = calculateEaseOfReassembly;
+window.calculateDamageProbability = calculateDamageProbability;
+window.calculateTotalTime = calculateTotalTime;
+window.calculateConnectionComplexity = calculateConnectionComplexity;
+
+console.log('Calculator JavaScript v3.3 loaded successfully - All variables properly defined');
+console.log('setupTimeScores check:', typeof setupTimeScores, setupTimeScores);
+console.log('Available tools:', Object.keys(toolProperties).length);
+console.log('Available reassembly tools:', Object.keys(reassemblyToolProperties).length);(() => {
         Object.keys(reassemblyToolProperties).forEach(tool => {
             const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
             const checkbox = document.getElementById('tool_' + id);
@@ -426,6 +429,7 @@ function toggleTool(tool) {
     }
     
     updateSelectedToolsDisplay();
+    updateCombinedSkillLevelScore();
 }
 
 // Toggle reassembly tool selection
@@ -447,6 +451,7 @@ function toggleReassemblyTool(tool) {
     }
     
     updateSelectedReassemblyToolsDisplay();
+    updateCombinedSkillLevelScore();
 }
 
 // Update selected tools display
@@ -507,209 +512,7 @@ function updateSelectedReassemblyToolsDisplay() {
     }
 }
 
-// Calculate Ease of Disassembly Score
-function calculateEaseOfDisassembly() {
-    try {
-        const connectionType = document.getElementById('disassemblyConnectionType').value;
-        const numberOfConnectors = parseFloat(document.getElementById('numberOfConnectors').value) || 0;
-        
-        if (!connectionType) {
-            alert('Please select a connection type for disassembly');
-            return;
-        }
-        
-        if (Object.keys(selectedTools).length === 0) {
-            alert('Please select at least one disassembly tool');
-            return;
-        }
-        
-        let totalTime = 0;
-        let weightedSetupTime = 0;
-        let weightedSkillLevel = 0;
-        let weightedPortability = 0;
-        let allToolsHaveTime = true;
-        let missingTimeTools = [];
-        
-        Object.keys(selectedTools).forEach(tool => {
-            const id = tool.replace(/\s+/g, '_').toLowerCase();
-            const timeInput = document.getElementById('time_input_' + id);
-            
-            if (!timeInput) {
-                allToolsHaveTime = false;
-                missingTimeTools.push(tool);
-                return;
-            }
-            
-            const time = parseFloat(timeInput.value) || 0;
-            
-            if (time <= 0) {
-                allToolsHaveTime = false;
-                missingTimeTools.push(tool);
-                return;
-            }
-            
-            selectedTools[tool].time = time;
-            totalTime += time;
-            
-            const props = selectedTools[tool].properties;
-            weightedSetupTime += setupTimeScores[props.setupTime] * time;
-            weightedSkillLevel += skillLevelScores[props.skillLevel] * time;
-            weightedPortability += portabilityScores[props.portability] * time;
-        });
-        
-        if (!allToolsHaveTime) {
-            alert('Please enter time for the following disassembly tools: ' + missingTimeTools.join(', '));
-            return;
-        }
-        
-        const avgSetupTime = weightedSetupTime / totalTime;
-        const avgSkillLevel = weightedSkillLevel / totalTime;
-        const avgPortability = weightedPortability / totalTime;
-        
-        let score = 0;
-        let connectorScore = 1;
-        
-        if (connectionType === 'Cementitious') {
-            score = (avgSetupTime * 0.22) + (avgSkillLevel * 0.50) + (avgPortability * 0.28);
-        } else {
-            if (connectionType === 'Other') {
-                connectorScore = 1;
-            } else if (connectionType === 'Screw' || connectionType === 'Bolt') {
-                if (numberOfConnectors <= 2) connectorScore = 1;
-                else if (numberOfConnectors === 3 || numberOfConnectors === 5) connectorScore = 0.95;
-                else connectorScore = 0.9;
-            }
-            
-            score = (avgSetupTime * 0.15) + (avgSkillLevel * 0.48) + (avgPortability * 0.22) + (connectorScore * 0.15);
-        }
-        
-        score = Math.max(0, Math.min(1, score));
-        calculationResults.easeOfDisassembly = score;
-        
-        const resultDiv = document.getElementById('disassemblyResult');
-        const scoreDiv = document.getElementById('disassemblyScore');
-        const detailsDiv = document.getElementById('disassemblyDetails');
-        
-        resultDiv.classList.remove('hidden');
-        scoreDiv.innerHTML = 'Score: <span style="color: ' + getRatingColor(score) + '">' + (score * 100).toFixed(1) + '%</span>';
-        
-        let details = '<div><strong>Calculation (' + connectionType + ' Connection):</strong></div>' +
-                     '<div>Tools Used: ' + Object.keys(selectedTools).map(tool => tool + ': ' + selectedTools[tool].time + 'min').join(', ') + '</div>' +
-                     '<div>Total Time: ' + totalTime + ' minutes</div>' +
-                     '<div>Weighted Averages: Setup: ' + avgSetupTime.toFixed(3) + ', Skill: ' + avgSkillLevel.toFixed(3) + ', Portability: ' + avgPortability.toFixed(3) + '</div>' +
-                     '<div><strong>Final Score: ' + (score * 100).toFixed(1) + '%</strong></div>';
-        
-        detailsDiv.innerHTML = details;
-        resultDiv.scrollIntoView({ behavior: 'smooth' });
-        
-    } catch (error) {
-        console.error('Error calculating ease of disassembly:', error);
-        alert('Error in disassembly calculation');
-    }
-}
-
-// Calculate Ease of Reassembly Score
-function calculateEaseOfReassembly() {
-    try {
-        const connectionType = document.getElementById('reassemblyConnectionType').value;
-        const numberOfConnectors = parseFloat(document.getElementById('reassemblyNumberOfConnectors').value) || 0;
-        
-        if (!connectionType) {
-            alert('Please select a connection type for reassembly');
-            return;
-        }
-        
-        if (Object.keys(selectedReassemblyTools).length === 0) {
-            alert('Please select at least one reassembly tool');
-            return;
-        }
-        
-        let totalTime = 0;
-        let weightedSetupTime = 0;
-        let weightedSkillLevel = 0;
-        let weightedPortability = 0;
-        let allToolsHaveTime = true;
-        let missingTimeTools = [];
-        
-        Object.keys(selectedReassemblyTools).forEach(tool => {
-            const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
-            const timeInput = document.getElementById('time_input_' + id);
-            
-            if (!timeInput) {
-                allToolsHaveTime = false;
-                missingTimeTools.push(tool);
-                return;
-            }
-            
-            const time = parseFloat(timeInput.value) || 0;
-            
-            if (time <= 0) {
-                allToolsHaveTime = false;
-                missingTimeTools.push(tool);
-                return;
-            }
-            
-            selectedReassemblyTools[tool].time = time;
-            totalTime += time;
-            
-            const props = selectedReassemblyTools[tool];
-            weightedSetupTime += setupTimeScores[props.setupTime] * time;
-            weightedSkillLevel += skillLevelScores[props.skillLevel] * time;
-            weightedPortability += portabilityScores[props.portability] * time;
-        });
-        
-        if (!allToolsHaveTime) {
-            alert('Please enter time for the following reassembly tools: ' + missingTimeTools.join(', '));
-            return;
-        }
-        
-        const avgSetupTime = weightedSetupTime / totalTime;
-        const avgSkillLevel = weightedSkillLevel / totalTime;
-        const avgPortability = weightedPortability / totalTime;
-        
-        let score = 0;
-        let connectorScore = 1;
-        
-        if (connectionType === 'Cementitious') {
-            score = (avgSetupTime * 0.22) + (avgSkillLevel * 0.50) + (avgPortability * 0.28);
-        } else {
-            if (connectionType === 'Other') {
-                connectorScore = 1;
-            } else if (connectionType === 'Screw' || connectionType === 'Bolt') {
-                if (numberOfConnectors <= 2) connectorScore = 1;
-                else if (numberOfConnectors === 3 || numberOfConnectors === 5) connectorScore = 0.95;
-                else connectorScore = 0.9;
-            }
-            
-            score = (avgSetupTime * 0.15) + (avgSkillLevel * 0.48) + (avgPortability * 0.22) + (connectorScore * 0.15);
-        }
-        
-        score = Math.max(0, Math.min(1, score));
-        calculationResults.easeOfReassembly = score;
-        
-        const resultDiv = document.getElementById('reassemblyResult');
-        const scoreDiv = document.getElementById('reassemblyScore');
-        const detailsDiv = document.getElementById('reassemblyDetails');
-        
-        resultDiv.classList.remove('hidden');
-        scoreDiv.innerHTML = 'Score: <span style="color: ' + getRatingColor(score) + '">' + (score * 100).toFixed(1) + '%</span>';
-        
-        let details = '<div><strong>Calculation (' + connectionType + ' Connection):</strong></div>' +
-                     '<div>Tools Used: ' + Object.keys(selectedReassemblyTools).map(tool => tool + ': ' + selectedReassemblyTools[tool].time + 'min').join(', ') + '</div>' +
-                     '<div>Total Time: ' + totalTime + ' minutes</div>' +
-                     '<div>Weighted Averages: Setup: ' + avgSetupTime.toFixed(3) + ', Skill: ' + avgSkillLevel.toFixed(3) + ', Portability: ' + avgPortability.toFixed(3) + '</div>' +
-                     '<div><strong>Final Score: ' + (score * 100).toFixed(1) + '%</strong></div>';
-        
-        detailsDiv.innerHTML = details;
-        resultDiv.scrollIntoView({ behavior: 'smooth' });
-        
-    } catch (error) {
-        console.error('Error calculating ease of reassembly:', error);
-        alert('Error in reassembly calculation');
-    }
-}
-
-// Additional calculation functions (simplified versions)
+// Joint area calculation
 function updateJointArea() {
     const connectionType = document.getElementById('connectionType').value;
     const length = parseFloat(document.getElementById('length').value) || 0;
@@ -976,18 +779,203 @@ function updateDisassemblyParameters() {
     }
 }
 
-function setupReassemblyConnectionTypeListener() {
-    const reassemblyConnectionType = document.getElementById('reassemblyConnectionType');
-    const reassemblyConnectorsGroup = document.getElementById('reassemblyConnectorsGroup');
-    
-    if (reassemblyConnectionType && reassemblyConnectorsGroup) {
-        reassemblyConnectionType.addEventListener('change', function() {
-            if (this.value === 'Cementitious' || this.value === '') {
-                reassemblyConnectorsGroup.style.display = 'none';
-            } else {
-                reassemblyConnectorsGroup.style.display = 'flex';
+function calculateEaseOfDisassembly() {
+    try {
+        const connectionType = document.getElementById('disassemblyConnectionType').value;
+        const numberOfConnectors = parseFloat(document.getElementById('numberOfConnectors').value) || 0;
+        
+        if (!connectionType) {
+            alert('Please select a connection type for disassembly');
+            return;
+        }
+        
+        if (Object.keys(selectedTools).length === 0) {
+            alert('Please select at least one disassembly tool');
+            return;
+        }
+        
+        let totalTime = 0;
+        let weightedSetupTime = 0;
+        let weightedSkillLevel = 0;
+        let weightedPortability = 0;
+        let allToolsHaveTime = true;
+        let missingTimeTools = [];
+        
+        Object.keys(selectedTools).forEach(tool => {
+            const id = tool.replace(/\s+/g, '_').toLowerCase();
+            const timeInput = document.getElementById('time_input_' + id);
+            
+            if (!timeInput) {
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool);
+                return;
             }
+            
+            const time = parseFloat(timeInput.value) || 0;
+            
+            if (time <= 0) {
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool);
+                return;
+            }
+            
+            selectedTools[tool].time = time;
+            totalTime += time;
+            
+            const props = selectedTools[tool].properties;
+            weightedSetupTime += setupTimeScores[props.setupTime] * time;
+            weightedSkillLevel += skillLevelScores[props.skillLevel] * time;
+            weightedPortability += portabilityScores[props.portability] * time;
         });
+        
+        if (!allToolsHaveTime) {
+            alert('Please enter time for the following disassembly tools: ' + missingTimeTools.join(', '));
+            return;
+        }
+        
+        const avgSetupTime = weightedSetupTime / totalTime;
+        const avgSkillLevel = weightedSkillLevel / totalTime;
+        const avgPortability = weightedPortability / totalTime;
+        
+        let score = 0;
+        let connectorScore = 1;
+        
+        if (connectionType === 'Cementitious') {
+            score = (avgSetupTime * 0.22) + (avgSkillLevel * 0.50) + (avgPortability * 0.28);
+        } else {
+            if (connectionType === 'Other') {
+                connectorScore = 1;
+            } else if (connectionType === 'Screw' || connectionType === 'Bolt') {
+                if (numberOfConnectors <= 2) connectorScore = 1;
+                else if (numberOfConnectors === 3 || numberOfConnectors === 5) connectorScore = 0.95;
+                else connectorScore = 0.9;
+            }
+            
+            score = (avgSetupTime * 0.15) + (avgSkillLevel * 0.48) + (avgPortability * 0.22) + (connectorScore * 0.15);
+        }
+        
+        score = Math.max(0, Math.min(1, score));
+        calculationResults.easeOfDisassembly = score;
+        
+        const resultDiv = document.getElementById('disassemblyResult');
+        const scoreDiv = document.getElementById('disassemblyScore');
+        const detailsDiv = document.getElementById('disassemblyDetails');
+        
+        resultDiv.classList.remove('hidden');
+        scoreDiv.innerHTML = 'Score: <span style="color: ' + getRatingColor(score) + '">' + (score * 100).toFixed(1) + '%</span>';
+        
+        let details = '<div><strong>Calculation (' + connectionType + ' Connection):</strong></div>' +
+                     '<div>Tools Used: ' + Object.keys(selectedTools).map(tool => tool + ': ' + selectedTools[tool].time + 'min').join(', ') + '</div>' +
+                     '<div>Total Time: ' + totalTime + ' minutes</div>' +
+                     '<div>Weighted Averages: Setup: ' + avgSetupTime.toFixed(3) + ', Skill: ' + avgSkillLevel.toFixed(3) + ', Portability: ' + avgPortability.toFixed(3) + '</div>' +
+                     '<div><strong>Final Score: ' + (score * 100).toFixed(1) + '%</strong></div>';
+        
+        detailsDiv.innerHTML = details;
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+        
+    } catch (error) {
+        console.error('Error calculating ease of disassembly:', error);
+        alert('Error in disassembly calculation');
+    }
+}
+
+function calculateEaseOfReassembly() {
+    try {
+        const connectionType = document.getElementById('reassemblyConnectionType').value;
+        const numberOfConnectors = parseFloat(document.getElementById('reassemblyNumberOfConnectors').value) || 0;
+        
+        if (!connectionType) {
+            alert('Please select a connection type for reassembly');
+            return;
+        }
+        
+        if (Object.keys(selectedReassemblyTools).length === 0) {
+            alert('Please select at least one reassembly tool');
+            return;
+        }
+        
+        let totalTime = 0;
+        let weightedSetupTime = 0;
+        let weightedSkillLevel = 0;
+        let weightedPortability = 0;
+        let allToolsHaveTime = true;
+        let missingTimeTools = [];
+        
+        Object.keys(selectedReassemblyTools).forEach(tool => {
+            const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
+            const timeInput = document.getElementById('time_input_' + id);
+            
+            if (!timeInput) {
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool);
+                return;
+            }
+            
+            const time = parseFloat(timeInput.value) || 0;
+            
+            if (time <= 0) {
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool);
+                return;
+            }
+            
+            selectedReassemblyTools[tool].time = time;
+            totalTime += time;
+            
+            const props = selectedReassemblyTools[tool];
+            weightedSetupTime += setupTimeScores[props.setupTime] * time;
+            weightedSkillLevel += skillLevelScores[props.skillLevel] * time;
+            weightedPortability += portabilityScores[props.portability] * time;
+        });
+        
+        if (!allToolsHaveTime) {
+            alert('Please enter time for the following reassembly tools: ' + missingTimeTools.join(', '));
+            return;
+        }
+        
+        const avgSetupTime = weightedSetupTime / totalTime;
+        const avgSkillLevel = weightedSkillLevel / totalTime;
+        const avgPortability = weightedPortability / totalTime;
+        
+        let score = 0;
+        let connectorScore = 1;
+        
+        if (connectionType === 'Cementitious') {
+            score = (avgSetupTime * 0.22) + (avgSkillLevel * 0.50) + (avgPortability * 0.28);
+        } else {
+            if (connectionType === 'Other') {
+                connectorScore = 1;
+            } else if (connectionType === 'Screw' || connectionType === 'Bolt') {
+                if (numberOfConnectors <= 2) connectorScore = 1;
+                else if (numberOfConnectors === 3 || numberOfConnectors === 5) connectorScore = 0.95;
+                else connectorScore = 0.9;
+            }
+            
+            score = (avgSetupTime * 0.15) + (avgSkillLevel * 0.48) + (avgPortability * 0.22) + (connectorScore * 0.15);
+        }
+        
+        score = Math.max(0, Math.min(1, score));
+        calculationResults.easeOfReassembly = score;
+        
+        const resultDiv = document.getElementById('reassemblyResult');
+        const scoreDiv = document.getElementById('reassemblyScore');
+        const detailsDiv = document.getElementById('reassemblyDetails');
+        
+        resultDiv.classList.remove('hidden');
+        scoreDiv.innerHTML = 'Score: <span style="color: ' + getRatingColor(score) + '">' + (score * 100).toFixed(1) + '%</span>';
+        
+        let details = '<div><strong>Calculation (' + connectionType + ' Connection):</strong></div>' +
+                     '<div>Tools Used: ' + Object.keys(selectedReassemblyTools).map(tool => tool + ': ' + selectedReassemblyTools[tool].time + 'min').join(', ') + '</div>' +
+                     '<div>Total Time: ' + totalTime + ' minutes</div>' +
+                     '<div>Weighted Averages: Setup: ' + avgSetupTime.toFixed(3) + ', Skill: ' + avgSkillLevel.toFixed(3) + ', Portability: ' + avgPortability.toFixed(3) + '</div>' +
+                     '<div><strong>Final Score: ' + (score * 100).toFixed(1) + '%</strong></div>';
+        
+        detailsDiv.innerHTML = details;
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+        
+    } catch (error) {
+        console.error('Error calculating ease of reassembly:', error);
+        alert('Error in reassembly calculation');
     }
 }
 
@@ -1028,7 +1016,6 @@ function calculateDamageProbability() {
             return;
         }
         
-        // Prepare disassembly tools data
         const disassemblyToolsData = [];
         let allDisassemblyToolsHaveTime = true;
         
@@ -1049,7 +1036,6 @@ function calculateDamageProbability() {
             });
         });
         
-        // Prepare reassembly tools data
         const reassemblyToolsData = [];
         let allReassemblyToolsHaveTime = true;
         
@@ -1080,7 +1066,6 @@ function calculateDamageProbability() {
             return;
         }
         
-        // Calculate damage probabilities
         const minorDisassembly = calculateDamageProbabilityForTools(disassemblyToolsData, 'minor');
         const majorDisassembly = calculateDamageProbabilityForTools(disassemblyToolsData, 'major');
         const precisionDisassembly = calculateDamageProbabilityForTools(disassemblyToolsData, 'precision');
@@ -1089,12 +1074,10 @@ function calculateDamageProbability() {
         const majorReassembly = calculateDamageProbabilityForTools(reassemblyToolsData, 'major');
         const precisionReassembly = calculateDamageProbabilityForTools(reassemblyToolsData, 'precision');
         
-        // Combined scores
         const minorCombined = (minorDisassembly + minorReassembly) / 2;
         const majorCombined = (majorDisassembly + majorReassembly) / 2;
         const precisionCombined = (precisionDisassembly + precisionReassembly) / 2;
         
-        // Weighted final score
         const finalScore = (minorCombined * damageWeights.minor) + 
                           (majorCombined * damageWeights.major) + 
                           (precisionCombined * damageWeights.precision);
@@ -1124,35 +1107,32 @@ function calculateDamageProbability() {
     }
 }
 
-// Initialize application
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - initializing calculator v3.2...');
+function setupReassemblyConnectionTypeListener() {
+    const reassemblyConnectionType = document.getElementById('reassemblyConnectionType');
+    const reassemblyConnectorsGroup = document.getElementById('reassemblyConnectorsGroup');
     
-    initializeToolSelection();
-    updateConnectionTypeOptions();
-    setupReassemblyConnectionTypeListener();
-    setupConnectionComplexityListeners();
-    
-    setTimeout(() => {
-        initializeReassemblyToolSelection();
-        console.log('All initialization complete v3.2');
-    }, 300);
-});
+    if (reassemblyConnectionType && reassemblyConnectorsGroup) {
+        reassemblyConnectionType.addEventListener('change', function() {
+            if (this.value === 'Cementitious' || this.value === '') {
+                reassemblyConnectorsGroup.style.display = 'none';
+            } else {
+                reassemblyConnectorsGroup.style.display = 'flex';
+            }
+        });
+    }
+}
 
 function setupConnectionComplexityListeners() {
-    // Connection Type dropdown
     const complexityConnectionType = document.getElementById('complexityConnectionType');
     if (complexityConnectionType) {
         complexityConnectionType.addEventListener('change', updateConnectionComplexityScores);
     }
     
-    // Industry Preference dropdown
     const industryPreference = document.getElementById('industryPreference');
     if (industryPreference) {
         industryPreference.addEventListener('change', updateConnectionComplexityScores);
     }
     
-    // Time inputs
     const disassemblyTime = document.getElementById('disassemblyTime');
     const reassemblyTime = document.getElementById('reassemblyTime');
     
@@ -1165,22 +1145,13 @@ function setupConnectionComplexityListeners() {
     }
 }
 
-// Make functions globally accessible
-window.showTab = showTab;
-window.updateJointArea = updateJointArea;
-window.updateReductionFactor = updateReductionFactor;
-window.calculateReinforcementArea = calculateReinforcementArea;
-window.toggleNoWaste = toggleNoWaste;
-window.calculateEndOfCycleWaste = calculateEndOfCycleWaste;
-window.calculatePrefabricationDegree = calculatePrefabricationDegree;
-window.updateDisassemblyParameters = updateDisassemblyParameters;
-window.calculateEaseOfDisassembly = calculateEaseOfDisassembly;
-window.calculateEaseOfReassembly = calculateEaseOfReassembly;
-window.calculateDamageProbability = calculateDamageProbability;
-window.calculateTotalTime = calculateTotalTime;
-window.calculateConnectionComplexity = calculateConnectionComplexity;
-
-console.log('Calculator JavaScript v3.2 loaded successfully - All variables properly defined');
-console.log('setupTimeScores check:', typeof setupTimeScores, setupTimeScores);
-console.log('Available tools:', Object.keys(toolProperties).length);
-console.log('Available reassembly tools:', Object.keys(reassemblyToolProperties).length);
+// Initialize application
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - initializing calculator v3.3...');
+    
+    initializeToolSelection();
+    updateConnectionTypeOptions();
+    setupReassemblyConnectionTypeListener();
+    setupConnectionComplexityListeners();
+    
+    setTimeout
