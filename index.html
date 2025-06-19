@@ -272,8 +272,328 @@
                                     </div>
                                 </div>
 
-                                <!-- Add all 18 tools with complete structure -->
-                                <!-- For brevity, showing structure but you'll need all tools from the JS file -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_petrol_ring_saw" onchange="toggleToolStatic('Petrol Ring Saw', this)">
+                                        <label for="tool_petrol_ring_saw">Petrol Ring Saw</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Low | Skill: Intermediate | Portability: High
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-moderate">Minor: Moderate</div>
+                                        <div class="damage-indicator damage-high">Major: High</div>
+                                        <div class="damage-indicator damage-moderate">Precision: Moderate</div>
+                                    </div>
+                                    <div id="time_petrol_ring_saw" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_petrol_ring_saw" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Corded Ring Saw -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_corded_ring_saw" onchange="toggleToolStatic('Corded Ring Saw', this)">
+                                        <label for="tool_corded_ring_saw">Corded Ring Saw</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Low | Skill: Intermediate | Portability: Medium
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-moderate">Minor: Moderate</div>
+                                        <div class="damage-indicator damage-high">Major: High</div>
+                                        <div class="damage-indicator damage-moderate">Precision: Moderate</div>
+                                    </div>
+                                    <div id="time_corded_ring_saw" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_corded_ring_saw" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Petrol Chain Saw -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_petrol_chain_saw" onchange="toggleToolStatic('Petrol Chain Saw', this)">
+                                        <label for="tool_petrol_chain_saw">Petrol Chain Saw</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Low | Skill: Intermediate | Portability: High
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-moderate">Minor: Moderate</div>
+                                        <div class="damage-indicator damage-high">Major: High</div>
+                                        <div class="damage-indicator damage-low">Precision: Low</div>
+                                    </div>
+                                    <div id="time_petrol_chain_saw" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_petrol_chain_saw" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Corded Chain Saw -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_corded_chain_saw" onchange="toggleToolStatic('Corded Chain Saw', this)">
+                                        <label for="tool_corded_chain_saw">Corded Chain Saw</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Low | Skill: Intermediate | Portability: Medium
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-moderate">Minor: Moderate</div>
+                                        <div class="damage-indicator damage-high">Major: High</div>
+                                        <div class="damage-indicator damage-low">Precision: Low</div>
+                                    </div>
+                                    <div id="time_corded_chain_saw" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_corded_chain_saw" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Walk Behind Floor Saw -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_walk_behind_floor_saw" onchange="toggleToolStatic('Walk behind floor saw', this)">
+                                        <label for="tool_walk_behind_floor_saw">Walk Behind Floor Saw</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Low | Skill: Intermediate | Portability: Medium
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-low">Minor: Low</div>
+                                        <div class="damage-indicator damage-moderate">Major: Moderate</div>
+                                        <div class="damage-indicator damage-moderate">Precision: Moderate</div>
+                                    </div>
+                                    <div id="time_walk_behind_floor_saw" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_walk_behind_floor_saw" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Automated Wall Saw -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_automated_wall_saw" onchange="toggleToolStatic('Automated Wall Saw', this)">
+                                        <label for="tool_automated_wall_saw">Automated Wall Saw</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: High | Skill: Intermediate | Portability: Very Low
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-low">Minor: Low</div>
+                                        <div class="damage-indicator damage-low">Major: Low</div>
+                                        <div class="damage-indicator damage-high">Precision: High</div>
+                                    </div>
+                                    <div id="time_automated_wall_saw" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_automated_wall_saw" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Hydro Blast -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_hydro_blast" onchange="toggleToolStatic('Hydro blast', this)">
+                                        <label for="tool_hydro_blast">Hydro Blast</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: High | Skill: Advanced | Portability: Low
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-high">Minor: High</div>
+                                        <div class="damage-indicator damage-low">Major: Low</div>
+                                        <div class="damage-indicator damage-low">Precision: Low</div>
+                                    </div>
+                                    <div id="time_hydro_blast" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_hydro_blast" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Blow Torch -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_blow_torch" onchange="toggleToolStatic('Blow torch', this)">
+                                        <label for="tool_blow_torch">Blow Torch</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Moderate | Skill: Intermediate | Portability: High
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-low">Minor: Low</div>
+                                        <div class="damage-indicator damage-low">Major: Low</div>
+                                        <div class="damage-indicator damage-moderate">Precision: Moderate</div>
+                                    </div>
+                                    <div id="time_blow_torch" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_blow_torch" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Demolition Hammer -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_demolition_hammer" onchange="toggleToolStatic('Demolition Hammer', this)">
+                                        <label for="tool_demolition_hammer">Demolition Hammer</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Low | Skill: Basic | Portability: Medium
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-high">Minor: High</div>
+                                        <div class="damage-indicator damage-moderate">Major: Moderate</div>
+                                        <div class="damage-indicator damage-low">Precision: Low</div>
+                                    </div>
+                                    <div id="time_demolition_hammer" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_demolition_hammer" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Torque Wrench -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_torque_wrench" onchange="toggleToolStatic('Torque Wrench', this)">
+                                        <label for="tool_torque_wrench">Torque Wrench</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Low | Skill: Basic | Portability: High
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-low">Minor: Low</div>
+                                        <div class="damage-indicator damage-low">Major: Low</div>
+                                        <div class="damage-indicator damage-high">Precision: High</div>
+                                    </div>
+                                    <div id="time_torque_wrench" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_torque_wrench" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Angle Grinder -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_angle_grinder" onchange="toggleToolStatic('Angle Grinder', this)">
+                                        <label for="tool_angle_grinder">Angle Grinder</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Low | Skill: Basic | Portability: High
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-moderate">Minor: Moderate</div>
+                                        <div class="damage-indicator damage-high">Major: High</div>
+                                        <div class="damage-indicator damage-moderate">Precision: Moderate</div>
+                                    </div>
+                                    <div id="time_angle_grinder" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_angle_grinder" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Hydraulic Piston -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_hydraulic_piston" onchange="toggleToolStatic('Hydraulic Piston', this)">
+                                        <label for="tool_hydraulic_piston">Hydraulic Piston</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Low | Skill: Basic | Portability: High
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-high">Minor: High</div>
+                                        <div class="damage-indicator damage-low">Major: Low</div>
+                                        <div class="damage-indicator damage-high">Precision: High</div>
+                                    </div>
+                                    <div id="time_hydraulic_piston" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_hydraulic_piston" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Welder -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_welder" onchange="toggleToolStatic('Welder', this)">
+                                        <label for="tool_welder">Welder</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Moderate | Skill: Intermediate | Portability: High
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-low">Minor: Low</div>
+                                        <div class="damage-indicator damage-low">Major: Low</div>
+                                        <div class="damage-indicator damage-moderate">Precision: Moderate</div>
+                                    </div>
+                                    <div id="time_welder" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_welder" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Diamond Drill -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_diamond_drill" onchange="toggleToolStatic('Diamond Drill', this)">
+                                        <label for="tool_diamond_drill">Diamond Drill</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Low | Skill: Basic | Portability: High
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-very-high">Minor: Very High</div>
+                                        <div class="damage-indicator damage-high">Major: High</div>
+                                        <div class="damage-indicator damage-moderate">Precision: Moderate</div>
+                                    </div>
+                                    <div id="time_diamond_drill" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_diamond_drill" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Impact Wrench -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_impact_wrench" onchange="toggleToolStatic('Impact Wrench', this)">
+                                        <label for="tool_impact_wrench">Impact Wrench</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Low | Skill: Basic | Portability: High
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-very-high">Minor: Very High</div>
+                                        <div class="damage-indicator damage-low">Major: Low</div>
+                                        <div class="damage-indicator damage-high">Precision: High</div>
+                                    </div>
+                                    <div id="time_impact_wrench" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_impact_wrench" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Rotary Hammer -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_rotary_hammer" onchange="toggleToolStatic('Rotary Hammer', this)">
+                                        <label for="tool_rotary_hammer">Rotary Hammer</label>
+                                    </div>
+                                    <div class="tool-properties">
+                                        Setup: Low | Skill: Intermediate | Portability: High
+                                    </div>
+                                    <div class="tool-damage-info">
+                                        <div class="damage-indicator damage-very-high">Minor: Very High</div>
+                                        <div class="damage-indicator damage-moderate">Major: Moderate</div>
+                                        <div class="damage-indicator damage-low">Precision: Low</div>
+                                    </div>
+                                    <div id="time_rotary_hammer" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_rotary_hammer" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+
                                 
                             </div>
                         </div>
