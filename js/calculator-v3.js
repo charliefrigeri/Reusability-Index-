@@ -1,7 +1,7 @@
-// Construction Connection Reusability Assessment Calculator v3.1
-// Fresh implementation to avoid cache conflicts
+// Construction Connection Reusability Assessment Calculator v3.2
+// Fixed implementation to resolve all syntax and reference errors
 
-console.log('Loading calculator-v3.js - Version 3.1');
+console.log('Loading calculator-v3.js - Version 3.2');
 
 // Score mappings (DEFINED FIRST)
 const setupTimeScores = { "Low": 1, "Moderate": 0.5, "High": 0 };
@@ -305,6 +305,7 @@ function calculateConnectionComplexity() {
         console.error('Error calculating connection complexity:', error);
         alert('Error in connection complexity calculation. Please check your inputs.');
     }
+}
 
 function getRatingColor(score) {
     if (score >= 0.75) return "#4CAF50";
@@ -1125,7 +1126,7 @@ function calculateDamageProbability() {
 
 // Initialize application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - initializing calculator v3.1...');
+    console.log('DOM Content Loaded - initializing calculator v3.2...');
     
     initializeToolSelection();
     updateConnectionTypeOptions();
@@ -1134,7 +1135,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     setTimeout(() => {
         initializeReassemblyToolSelection();
-        console.log('All initialization complete v3.1');
+        console.log('All initialization complete v3.2');
     }, 300);
 });
 
@@ -1177,12 +1178,9 @@ window.calculateEaseOfDisassembly = calculateEaseOfDisassembly;
 window.calculateEaseOfReassembly = calculateEaseOfReassembly;
 window.calculateDamageProbability = calculateDamageProbability;
 window.calculateTotalTime = calculateTotalTime;
-window.calculateConnectionComplexity = calculateConnectionComplexity; = updateDisassemblyParameters;
-window.calculateEaseOfDisassembly = calculateEaseOfDisassembly;
-window.calculateEaseOfReassembly = calculateEaseOfReassembly;
-window.calculateDamageProbability = calculateDamageProbability;
+window.calculateConnectionComplexity = calculateConnectionComplexity;
 
-console.log('Calculator JavaScript v3.1 loaded successfully - All variables properly defined');
+console.log('Calculator JavaScript v3.2 loaded successfully - All variables properly defined');
 console.log('setupTimeScores check:', typeof setupTimeScores, setupTimeScores);
 console.log('Available tools:', Object.keys(toolProperties).length);
 console.log('Available reassembly tools:', Object.keys(reassemblyToolProperties).length);
