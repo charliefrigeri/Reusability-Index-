@@ -551,13 +551,28 @@ let calculationResults = {};
 // Initialize application
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM Content Loaded - initializing...');
-    initializeToolSelection();
-    setupReassemblyConnectionTypeListener();
-    updateConnectionTypeOptions();
     
-    // Initialize reassembly tools with a delay to ensure DOM is ready
+    // Initialize disassembly tools first
+    initializeToolSelection();
+    
+    // Setup connection type listeners
+    updateConnectionTypeOptions();
+    setupReassemblyConnectionTypeListener();
+    
+    // Initialize reassembly tools with proper timing
     setTimeout(() => {
+        console.log('Initializing reassembly tools...');
         initializeReassemblyToolSelection();
+    }, 300);
+    
+    // Verify CSS is loaded
+    setTimeout(() => {
+        const testElement = document.querySelector('.tool-grid');
+        if (testElement) {
+            const styles = window.getComputedStyle(testElement);
+            console.log('CSS Grid Check - Display:', styles.display);
+            console.log('CSS Grid Check - Grid Template Columns:', styles.gridTemplateColumns);
+        }
     }, 500);
 });
 
@@ -685,15 +700,15 @@ function initializeReassemblyToolSelection() {
         
         const toolItem = document.createElement('div');
         toolItem.className = 'tool-item';
+        
+        // Create the complete tool item HTML with proper structure
         toolItem.innerHTML = `
             <div class="tool-header">
                 <input type="checkbox" id="tool_${id}" class="tool-checkbox" />
                 <label for="tool_${id}" class="tool-label">${tool}</label>
             </div>
             <div class="tool-properties">
-                Setup: ${properties.setupTime} |
-                Skill: ${properties.skillLevel} |
-                Portability: ${properties.portability}
+                Setup: ${properties.setupTime} | Skill: ${properties.skillLevel} | Portability: ${properties.portability}
             </div>
             <div class="tool-damage-info">
                 <div class="damage-indicator ${getDamageClass(properties.minorDamage)}">Minor: ${properties.minorDamage}</div>
@@ -708,21 +723,24 @@ function initializeReassemblyToolSelection() {
         
         grid.appendChild(toolItem);
         console.log(`Tool item created and added for: ${tool}`);
-        
-        // Add event listener to checkbox
-        setTimeout(() => {
+    });
+    
+    // Add event listeners after all tools are created
+    setTimeout(() => {
+        toolList.forEach(tool => {
+            const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
             const checkbox = document.getElementById('tool_' + id);
             if (checkbox) {
                 checkbox.addEventListener('change', () => toggleReassemblyTool(tool));
                 console.log(`Event listener added for: ${tool}`);
             } else {
-                console.error(`ERROR: Checkbox not found for tool: ${tool}`);
+                console.error(`ERROR: Checkbox not found for tool: ${tool} (ID: tool_${id})`);
             }
-        }, 10);
-    });
+        });
+    }, 100);
     
     console.log('=== REASSEMBLY TOOLS INITIALIZATION COMPLETE ===');
-    console.log('Final grid content:', grid.innerHTML.substring(0, 200) + '...');
+    console.log('Grid HTML preview:', grid.innerHTML.substring(0, 500) + '...');
 }
 
 // Toggle reassembly tool selection
