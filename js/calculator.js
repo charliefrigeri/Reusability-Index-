@@ -291,14 +291,70 @@ const reductionFactors = {
 
 // Tools available for reassembly (subset of disassembly tools)
 const reassemblyToolProperties = {
-    "Demolition Hammer": toolProperties["Demolition Hammer"],
-    "Torque Wrench": toolProperties["Torque Wrench"],
-    "Angle Grinder": toolProperties["Angle Grinder"],
-    "Hydraulic Piston": toolProperties["Hydraulic Piston"],
-    "Welder": toolProperties["Welder"],
-    "Diamond Drill": toolProperties["Diamond Drill"],
-    "Impact Wrench": toolProperties["Impact Wrench"],
-    "Rotary Hammer": toolProperties["Rotary Hammer"]
+    "Demolition Hammer": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "Medium",
+        minorDamage: "High",
+        majorDamage: "Moderate", 
+        precision: "Low"
+    },
+    "Torque Wrench": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "High",
+        minorDamage: "Low",
+        majorDamage: "Low", 
+        precision: "High"
+    },
+    "Angle Grinder": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "High",
+        minorDamage: "Moderate",
+        majorDamage: "High", 
+        precision: "Moderate"
+    },
+    "Hydraulic Piston": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "High",
+        minorDamage: "High",
+        majorDamage: "Low", 
+        precision: "High"
+    },
+    "Welder": { 
+        setupTime: "Moderate", 
+        skillLevel: "Intermediate", 
+        portability: "High",
+        minorDamage: "Low",
+        majorDamage: "Low", 
+        precision: "Moderate"
+    },
+    "Diamond Drill": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "High",
+        minorDamage: "Very High",
+        majorDamage: "High", 
+        precision: "Moderate"
+    },
+    "Impact Wrench": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "High",
+        minorDamage: "Very High",
+        majorDamage: "Low", 
+        precision: "High"
+    },
+    "Rotary Hammer": { 
+        setupTime: "Low", 
+        skillLevel: "Intermediate", 
+        portability: "High",
+        minorDamage: "Very High",
+        majorDamage: "Moderate", 
+        precision: "Low"
+    }
 };
 
 // Global variables
@@ -321,8 +377,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Alternative initialization function for manual trigger
 function forceInitializeReassemblyTools() {
-    console.log('Force initializing reassembly tools...');
+    console.log('=== FORCE INITIALIZE REASSEMBLY TOOLS ===');
+    console.log('Current reassemblyToolProperties:', reassemblyToolProperties);
+    console.log('Available functions:', {
+        initializeReassemblyToolSelection: typeof initializeReassemblyToolSelection,
+        getDamageClass: typeof getDamageClass,
+        toggleReassemblyTool: typeof toggleReassemblyTool
+    });
+    
     initializeReassemblyToolSelection();
+    
+    // Also test if the grid exists
+    const grid = document.getElementById('reassemblyToolSelectionGrid');
+    console.log('Grid element check:', grid ? 'FOUND' : 'NOT FOUND');
+    if (grid) {
+        console.log('Grid current content length:', grid.innerHTML.length);
+    }
 }
 
 // Tab switching functionality
@@ -391,53 +461,82 @@ function initializeToolSelection() {
 
 // Initialize reassembly tool selection grid
 function initializeReassemblyToolSelection() {
-    // Add a small delay to ensure DOM is fully loaded
-    setTimeout(() => {
-        const grid = document.getElementById('reassemblyToolSelectionGrid');
-        if (!grid) {
-            console.log('Reassembly tool grid not found, retrying...');
+    console.log('=== REASSEMBLY TOOLS INITIALIZATION START ===');
+    
+    const grid = document.getElementById('reassemblyToolSelectionGrid');
+    if (!grid) {
+        console.error('ERROR: reassemblyToolSelectionGrid element not found!');
+        return;
+    }
+    
+    console.log('Grid element found:', grid);
+    console.log('Reassembly tool properties object:', reassemblyToolProperties);
+    console.log('Available tools:', Object.keys(reassemblyToolProperties));
+    
+    // Clear existing content
+    grid.innerHTML = '';
+    
+    const toolList = Object.keys(reassemblyToolProperties);
+    
+    if (toolList.length === 0) {
+        console.error('ERROR: No tools found in reassemblyToolProperties!');
+        grid.innerHTML = '<div style="padding: 20px; color: red;">Error: No reassembly tools available</div>';
+        return;
+    }
+    
+    console.log(`Creating ${toolList.length} tool items...`);
+    
+    toolList.forEach((tool, index) => {
+        console.log(`Creating tool ${index + 1}/${toolList.length}: ${tool}`);
+        
+        const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
+        const properties = reassemblyToolProperties[tool];
+        
+        if (!properties) {
+            console.error(`ERROR: No properties found for tool: ${tool}`);
             return;
         }
         
-        console.log('Initializing reassembly tools...');
-        grid.innerHTML = '';
-        const toolList = Object.keys(reassemblyToolProperties);
-        console.log('Reassembly tools to display:', toolList);
+        const toolItem = document.createElement('div');
+        toolItem.className = 'tool-item';
+        toolItem.innerHTML = `
+            <div class="tool-header">
+                <input type="checkbox" id="tool_${id}" class="tool-checkbox" />
+                <label for="tool_${id}" class="tool-label">${tool}</label>
+            </div>
+            <div class="tool-properties">
+                Setup: ${properties.setupTime} |
+                Skill: ${properties.skillLevel} |
+                Portability: ${properties.portability}
+            </div>
+            <div class="tool-damage-info">
+                <div class="damage-indicator ${getDamageClass(properties.minorDamage)}">Minor: ${properties.minorDamage}</div>
+                <div class="damage-indicator ${getDamageClass(properties.majorDamage)}">Major: ${properties.majorDamage}</div>
+                <div class="damage-indicator ${getDamageClass(properties.precision)}">Precision: ${properties.precision}</div>
+            </div>
+            <div id="time_${id}" class="time-input hidden">
+                <label>Time (minutes):</label>
+                <input type="number" id="time_input_${id}" min="0" step="0.1" placeholder="Enter time">
+            </div>
+        `;
         
-        toolList.forEach(tool => {
-            const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
-            const toolItem = document.createElement('div');
-            toolItem.className = 'tool-item';
-            toolItem.innerHTML = `
-                <div class="tool-header">
-                    <input type="checkbox" id="tool_${id}" class="tool-checkbox" />
-                    <label for="tool_${id}" class="tool-label">${tool}</label>
-                </div>
-                <div class="tool-properties">
-                    Setup: ${reassemblyToolProperties[tool].setupTime} |
-                    Skill: ${reassemblyToolProperties[tool].skillLevel} |
-                    Portability: ${reassemblyToolProperties[tool].portability}
-                </div>
-                <div class="tool-damage-info">
-                    <div class="damage-indicator ${getDamageClass(reassemblyToolProperties[tool].minorDamage)}">Minor: ${reassemblyToolProperties[tool].minorDamage}</div>
-                    <div class="damage-indicator ${getDamageClass(reassemblyToolProperties[tool].majorDamage)}">Major: ${reassemblyToolProperties[tool].majorDamage}</div>
-                    <div class="damage-indicator ${getDamageClass(reassemblyToolProperties[tool].precision)}">Precision: ${reassemblyToolProperties[tool].precision}</div>
-                </div>
-                <div id="time_${id}" class="time-input hidden">
-                    <label>Time (minutes):</label>
-                    <input type="number" id="time_input_${id}" min="0" step="0.1" placeholder="Enter time">
-                </div>
-            `;
-            
-            grid.appendChild(toolItem);
-            
-            // Add event listener to checkbox
+        grid.appendChild(toolItem);
+        console.log(`Tool item created and added for: ${tool}`);
+        
+        // Add event listener to checkbox
+        setTimeout(() => {
             const checkbox = document.getElementById('tool_' + id);
-            checkbox.addEventListener('change', () => toggleReassemblyTool(tool));
-        });
-        
-        console.log('Reassembly tools initialized successfully');
-    }, 100);
+            if (checkbox) {
+                checkbox.addEventListener('change', () => toggleReassemblyTool(tool));
+                console.log(`Event listener added for: ${tool}`);
+            } else {
+                console.error(`ERROR: Checkbox not found for tool: ${tool}`);
+            }
+        }, 10);
+    });
+    
+    console.log('=== REASSEMBLY TOOLS INITIALIZATION COMPLETE ===');
+    console.log('Final grid content:', grid.innerHTML.substring(0, 200) + '...');
 }
 
 // Toggle reassembly tool selection
