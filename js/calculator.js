@@ -154,6 +154,702 @@ const setupTimeScores = { "Low": 1, "Moderate": 0.5, "High": 0 };
 const skillLevelScores = { "Basic": 1, "Intermediate": 0.5, "Advanced": 0 };
 const portabilityScores = { "High": 1, "Medium": 0.66, "Low": 0.33, "Very Low": 0 };
 
+// Reduction factors for materials (from Table 1)
+const reductionFactors = {
+    "C12/15": { "IIIA": 2.03, "IIIB": 2.29, "IIIC": 2.50, "I": 1.82 },
+    "C20/25": { "IIIA": 1.98, "IIIB": 2.23, "IIIC": 2.44, "I": 1.69 },
+    "C30/37": { "IIIA": 1.85, "IIIB": 2.09, "IIIC": 2.30, "I": 1.57 },
+    "C40/50": { "IIIA": 1.74, "IIIB": 1.96, "I": 1.46 },
+    "C45/55": { "IIIA": 1.70, "IIIB": 1.90, "IIIC": 2.10, "I": 1.44 },
+    "C50/60": { "IIIA": 1.53, "IIIB": 1.75, "I": 1.28 },
+    "C55/67": { "IIIA": 1.58, "IIIB": 1.60, "I": 1.38 },
+    "C60/76": { "IIIA": 1.52, "IIIB": 1.64, "I": 1.29 },
+    "C70/85": { "IIIA": 1.27, "IIIB": 1.37, "I": 1.10 },
+    "C80/95": { "IIIA": 1.15, "IIIB": 1.08, "I": 1.04 },
+    "C90/105": { "IIIA": 1.08, "IIIB": 1.04, "I": 1.04 }
+};
+
+// Global variables
+let selectedTools = {};
+let calculationResults = {};
+
+// Initialize application
+document.addEventListener('DOMContentLoaded', function() {
+    updateConnectionTypeOptions();
+});
+
+// Tab switching functionality
+function showTab(tabName) {
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => tab.classList.remove('active'));
+    
+    const navTabs = document.querySelectorAll('.nav-tab');
+    navTabs.forEach(tab => tab.classList.remove('active'));
+    
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// Joint area calculation with proper field visibility
+function updateJointArea() {
+    const connectionType = document.getElementById('connectionType').value;
+    const length = parseFloat(document.getElementById('length').value) || 0;
+    const width = parseFloat(document.getElementById('width').value) || 0;
+    const height = parseFloat(document.getElementById('height').value) || 0;
+    const heightGroup = document.getElementById('heightGroup');
+    
+    if (connectionType === 'Other') {
+        heightGroup.style.display = 'flex';
+        document.getElementById('height').required = true;
+    } else {
+        heightGroup.style.display = 'none';
+        document.getElementById('height').required = false;
+    }
+    
+    let jointArea = 0;
+    
+    if (connectionType && length && width) {
+        if (connectionType === 'Wall-Wall Horizontal' || connectionType === 'Column-Column') {
+            jointArea = length * width;
+        } else if (connectionType === 'Other' && height) {
+            jointArea = Math.min(length, width) * height;
+        }
+    }
+    
+    const display = document.getElementById('jointAreaDisplay');
+    const display2 = document.getElementById('jointAreaDisplay2');
+    
+    if (display) display.textContent = jointArea.toFixed(2) + ' cm²';
+    if (display2) display2.textContent = jointArea.toFixed(2) + ' cm²';
+    
+    updateReinforcementType();
+    
+    return jointArea;
+}
+
+// Update reduction factor based on strength class and mortar type
+function updateReductionFactor() {
+    const strengthClass = document.getElementById('strengthClass').value;
+    const mortarType = document.getElementById('mortarType').value;
+    
+    let reductionFactor = '--';
+    
+    if (strengthClass && mortarType && reductionFactors[strengthClass] && reductionFactors[strengthClass][mortarType]) {
+        reductionFactor = reductionFactors[strengthClass][mortarType];
+    }
+    
+    const display = document.getElementById('reductionFactorDisplay');
+    if (display) display.textContent = reductionFactor;
+    
+    return reductionFactor;
+}
+
+// Update connection type options
+function updateConnectionTypeOptions() {
+    const connectionType = document.getElementById('connectionType');
+    if (!connectionType) return;
+    
+    connectionType.addEventListener('change', function() {
+        updateJointArea();
+        updateReinforcementType();
+    });
+}
+
+// Update reinforcement type based on connection type
+function updateReinforcementType() {
+    const connectionType = document.getElementById('connectionType').value;
+    const reinforcementTypeDisplay = document.getElementById('reinforcementTypeDisplay');
+    const reinforcementNumberGroup = document.getElementById('reinforcementNumberGroup');
+    const reinforcementLengthGroup = document.getElementById('reinforcementLengthGroup');
+    const reinforcementOtherLengthGroup = document.getElementById('reinforcementOtherLengthGroup');
+    const reinforcementDiameterGroup = document.getElementById('reinforcementDiameterGroup');
+    
+    if (!reinforcementTypeDisplay) return;
+    
+    if (reinforcementNumberGroup) reinforcementNumberGroup.style.display = 'none';
+    if (reinforcementLengthGroup) reinforcementLengthGroup.style.display = 'none';
+    if (reinforcementOtherLengthGroup) reinforcementOtherLengthGroup.style.display = 'none';
+    
+    if (connectionType === 'Column-Column') {
+        reinforcementTypeDisplay.textContent = 'Number of Reinforcement Bars';
+        if (reinforcementNumberGroup) reinforcementNumberGroup.style.display = 'flex';
+        if (reinforcementDiameterGroup) reinforcementDiameterGroup.style.display = 'flex';
+    } else if (connectionType === 'Wall-Wall Horizontal') {
+        reinforcementTypeDisplay.textContent = 'Length of Reinforcement';
+        if (reinforcementLengthGroup) reinforcementLengthGroup.style.display = 'flex';
+        if (reinforcementDiameterGroup) reinforcementDiameterGroup.style.display = 'flex';
+    } else if (connectionType === 'Other') {
+        reinforcementTypeDisplay.textContent = 'Length and Number of Reinforcement';
+        if (reinforcementNumberGroup) reinforcementNumberGroup.style.display = 'flex';
+        if (reinforcementOtherLengthGroup) reinforcementOtherLengthGroup.style.display = 'flex';
+        if (reinforcementDiameterGroup) reinforcementDiameterGroup.style.display = 'flex';
+    } else {
+        reinforcementTypeDisplay.textContent = '--';
+        if (reinforcementDiameterGroup) reinforcementDiameterGroup.style.display = 'none';
+    }
+    
+    calculateReinforcementArea();
+}
+
+// Calculate reinforcement area based on connection type and inputs
+function calculateReinforcementArea() {
+    const connectionType = document.getElementById('connectionType').value;
+    const diameter = parseFloat(document.getElementById('reinforcementDiameter').value) || 8;
+    const noWaste = document.getElementById('noReinforcementWaste').checked;
+    const reinforcementAreaDisplay = document.getElementById('reinforcementAreaDisplay');
+    
+    if (!reinforcementAreaDisplay) return 0;
+    
+    if (noWaste) {
+        reinforcementAreaDisplay.textContent = '0 cm² (No waste)';
+        return 0;
+    }
+    
+    let reinforcementArea = 0;
+    
+    if (connectionType === 'Column-Column') {
+        const numberOfBars = parseFloat(document.getElementById('reinforcementNumber').value) || 0;
+        if (numberOfBars > 0) {
+            const diameterCm = diameter / 10;
+            reinforcementArea = Math.PI * Math.pow(diameterCm, 2) / 4 * numberOfBars;
+        }
+    } else if (connectionType === 'Wall-Wall Horizontal') {
+        const length = parseFloat(document.getElementById('reinforcementLength').value) || 0;
+        if (length > 0) {
+            const diameterCm = diameter / 10;
+            reinforcementArea = Math.PI * Math.pow(diameterCm, 2) / 4;
+        }
+    } else if (connectionType === 'Other') {
+        const length = parseFloat(document.getElementById('reinforcementOtherLength').value) || 0;
+        const numberOfBars = parseFloat(document.getElementById('reinforcementNumber').value) || 0;
+        if (length > 0 && numberOfBars > 0) {
+            const diameterCm = diameter / 10;
+            reinforcementArea = length * numberOfBars * diameterCm;
+        }
+    }
+    
+    reinforcementAreaDisplay.textContent = reinforcementArea.toFixed(2) + ' cm²';
+    return reinforcementArea;
+}
+
+// Toggle no waste option
+function toggleNoWaste() {
+    const noWaste = document.getElementById('noReinforcementWaste').checked;
+    
+    const reinforcementNumber = document.getElementById('reinforcementNumber');
+    const reinforcementLength = document.getElementById('reinforcementLength');
+    const reinforcementOtherLength = document.getElementById('reinforcementOtherLength');
+    const reinforcementDiameter = document.getElementById('reinforcementDiameter');
+    
+    if (reinforcementNumber) reinforcementNumber.disabled = noWaste;
+    if (reinforcementLength) reinforcementLength.disabled = noWaste;
+    if (reinforcementOtherLength) reinforcementOtherLength.disabled = noWaste;
+    if (reinforcementDiameter) reinforcementDiameter.disabled = noWaste;
+    
+    calculateReinforcementArea();
+}
+
+// Calculate End of Cycle Waste Score
+function calculateEndOfCycleWaste() {
+    try {
+        const jointArea = updateJointArea();
+        const wasteArea = parseFloat(document.getElementById('wasteArea').value) || 0;
+        const reductionFactor = updateReductionFactor();
+        const reinforcementArea = calculateReinforcementArea();
+        
+        if (!jointArea || wasteArea < 0 || reductionFactor === '--') {
+            alert('Please fill in all required fields correctly');
+            return;
+        }
+        
+        const reinforcementReductionFactor = 0.21;
+        
+        const materialWasteComponent = (wasteArea / reductionFactor) / jointArea;
+        const reinforcementWasteComponent = (reinforcementArea / jointArea) / reinforcementReductionFactor;
+        
+        const score = Math.max(0, Math.min(1, 1 - (materialWasteComponent + reinforcementWasteComponent)));
+        
+        calculationResults.endOfCycleWaste = score;
+        
+        const resultDiv = document.getElementById('endOfCycleResult');
+        const scoreDiv = document.getElementById('endOfCycleScore');
+        const detailsDiv = document.getElementById('endOfCycleDetails');
+        
+        resultDiv.classList.remove('hidden');
+        scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(score)}">${(score * 100).toFixed(1)}%</span>`;
+        
+        detailsDiv.innerHTML = `
+            <div><strong>Calculation Details:</strong></div>
+            <div>Joint Area: ${jointArea.toFixed(2)} cm²</div>
+            <div>Material Waste Area: ${wasteArea.toFixed(2)} cm²</div>
+            <div>Reinforcement Waste Area: ${reinforcementArea.toFixed(2)} cm²</div>
+            <div>Material Reduction Factor: ${reductionFactor}</div>
+            <div>Reinforcement Reduction Factor: ${reinforcementReductionFactor}</div>
+            <div style="margin-top: 15px;"><strong>Formula:</strong></div>
+            <div>Score = 1 - (Material Waste Component + Reinforcement Waste Component)</div>
+            <div style="margin-top: 10px;"><strong>Material Waste Component:</strong></div>
+            <div>(${wasteArea.toFixed(2)} / ${reductionFactor}) / ${jointArea.toFixed(2)} = ${materialWasteComponent.toFixed(6)}</div>
+            <div style="margin-top: 10px;"><strong>Reinforcement Waste Component:</strong></div>
+            <div>(${reinforcementArea.toFixed(2)} / ${jointArea.toFixed(2)}) / ${reinforcementReductionFactor} = ${reinforcementWasteComponent.toFixed(6)}</div>
+            <div style="margin-top: 10px;"><strong>Final Score:</strong></div>
+            <div>Score = 1 - (${materialWasteComponent.toFixed(6)} + ${reinforcementWasteComponent.toFixed(6)}) = ${score.toFixed(4)}</div>
+        `;
+        
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+        
+    } catch (error) {
+        console.error('Error calculating end of cycle waste:', error);
+        alert('Error in calculation. Please check your inputs.');
+    }
+}
+
+// Calculate Prefabrication Degree Score
+function calculatePrefabricationDegree() {
+    try {
+        const jointArea = updateJointArea();
+        const prefabricatedArea = parseFloat(document.getElementById('prefabricatedArea').value) || 0;
+        
+        if (!jointArea || prefabricatedArea < 0) {
+            alert('Please fill in all required fields correctly');
+            return;
+        }
+        
+        const score = Math.max(0, Math.min(1, prefabricatedArea / jointArea));
+        
+        calculationResults.prefabricationDegree = score;
+        
+        const resultDiv = document.getElementById('prefabricationResult');
+        const scoreDiv = document.getElementById('prefabricationScore');
+        const detailsDiv = document.getElementById('prefabricationDetails');
+        
+        resultDiv.classList.remove('hidden');
+        scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(score)}">${(score * 100).toFixed(1)}%</span>`;
+        
+        detailsDiv.innerHTML = `
+            <div><strong>Calculation Details:</strong></div>
+            <div>Joint Area: ${jointArea.toFixed(2)} cm²</div>
+            <div>Prefabricated Area: ${prefabricatedArea.toFixed(2)} cm²</div>
+            <div>Formula: Prefabricated Area / Joint Area</div>
+            <div>Score = ${prefabricatedArea.toFixed(2)} / ${jointArea.toFixed(2)} = ${score.toFixed(4)}</div>
+        `;
+        
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+        
+    } catch (error) {
+        console.error('Error calculating prefabrication degree:', error);
+        alert('Error in calculation. Please check your inputs.');
+    }
+}
+
+// Static tool toggle function for disassembly tools
+function toggleToolStatic(toolName, checkbox) {
+    const id = toolName.replace(/\s+/g, '_').toLowerCase();
+    const timeInputDiv = document.getElementById('time_' + id);
+    const toolItem = checkbox.closest('.tool-item');
+    
+    if (checkbox.checked) {
+        selectedTools[toolName] = {
+            time: 0,
+            properties: toolProperties[toolName]
+        };
+        timeInputDiv.classList.remove('hidden');
+        toolItem.classList.add('selected');
+    } else {
+        delete selectedTools[toolName];
+        timeInputDiv.classList.add('hidden');
+        toolItem.classList.remove('selected');
+        const timeInput = document.getElementById('time_input_' + id);
+        if (timeInput) timeInput.value = '';
+    }
+    
+    updateSelectedToolsDisplay();
+}
+
+// Update selected tools display
+function updateSelectedToolsDisplay() {
+    const propertiesDisplay = document.getElementById('toolPropertiesDisplay');
+    const propertiesList = document.getElementById('toolPropertiesList');
+    
+    if (!propertiesDisplay || !propertiesList) return;
+    
+    if (Object.keys(selectedTools).length > 0) {
+        propertiesDisplay.classList.remove('hidden');
+        let html = '<div><strong>Selected Tools:</strong></div>';
+        
+        Object.keys(selectedTools).forEach(tool => {
+            const properties = selectedTools[tool].properties;
+            html += `
+                <div class="tool-property-item">
+                    <strong>${tool}</strong><br>
+                    Setup: ${properties.setupTime} (${setupTimeScores[properties.setupTime]}) | 
+                    Skill: ${properties.skillLevel} (${skillLevelScores[properties.skillLevel]}) | 
+                    Portability: ${properties.portability} (${portabilityScores[properties.portability]})<br>
+                    <small>Damage: Minor=${properties.minorDamage}, Major=${properties.majorDamage}, Precision=${properties.precision}</small>
+                </div>
+            `;
+        });
+        
+        propertiesList.innerHTML = html;
+    } else {
+        propertiesDisplay.classList.add('hidden');
+    }
+}
+
+// Update disassembly parameters based on connection type
+function updateDisassemblyParameters() {
+    const connectionType = document.getElementById('disassemblyConnectionType').value;
+    const connectorsGroup = document.getElementById('connectorsGroup');
+    const subParametersDisplay = document.getElementById('disassemblySubParameters');
+    const subParametersList = document.getElementById('subParametersList');
+    
+    if (!subParametersDisplay || !subParametersList) return;
+    
+    if (connectionType) {
+        subParametersDisplay.classList.remove('hidden');
+        
+        if (connectionType === 'Cementitious') {
+            if (connectorsGroup) connectorsGroup.style.display = 'none';
+            subParametersList.innerHTML = `
+                <div><strong>Parameters for Cementitious Connections:</strong></div>
+                <div>• <strong>Setup Time:</strong> Weight 0.22</div>
+                <div>• <strong>Skill Level:</strong> Weight 0.50</div>
+                <div>• <strong>Portability:</strong> Weight 0.28</div>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                    <strong>Formula:</strong> Σ(score × time) / Σ(time) for each parameter<br>
+                    <strong>Final Score:</strong> (Setup × 0.22) + (Skill × 0.50) + (Portability × 0.28)
+                </div>
+            `;
+        } else {
+            if (connectorsGroup) connectorsGroup.style.display = 'flex';
+            subParametersList.innerHTML = `
+                <div><strong>Parameters for ${connectionType} Connections:</strong></div>
+                <div>• <strong>Setup Time:</strong> Weight 0.15</div>
+                <div>• <strong>Skill Level:</strong> Weight 0.48</div>
+                <div>• <strong>Portability:</strong> Weight 0.22</div>
+                <div>• <strong>Number of Connectors:</strong> Weight 0.15</div>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                    <strong>Formula:</strong> Σ(score × time) / Σ(time) for setup, skill, portability<br>
+                    <strong>Connector Scoring:</strong> ≤2 connectors = 1.0, 3 or 5 = 0.95, others = 0.9<br>
+                    <strong>Final Score:</strong> (Setup × 0.15) + (Skill × 0.48) + (Portability × 0.22) + (Connectors × 0.15)
+                </div>
+            `;
+        }
+    } else {
+        if (connectorsGroup) connectorsGroup.style.display = 'none';
+        subParametersDisplay.classList.add('hidden');
+    }
+}
+
+// Calculate Ease of Disassembly Score
+function calculateEaseOfDisassembly() {
+    try {
+        const connectionType = document.getElementById('disassemblyConnectionType').value;
+        const numberOfConnectors = parseFloat(document.getElementById('numberOfConnectors').value) || 0;
+        
+        if (!connectionType || Object.keys(selectedTools).length === 0) {
+            alert('Please select at least one tool and connection type');
+            return;
+        }
+        
+        let totalTime = 0;
+        let weightedSetupTime = 0;
+        let weightedSkillLevel = 0;
+        let weightedPortability = 0;
+        let allToolsHaveTime = true;
+        
+        Object.keys(selectedTools).forEach(tool => {
+            const id = tool.replace(/\s+/g, '_').toLowerCase();
+            const timeInput = document.getElementById('time_input_' + id);
+            const time = parseFloat(timeInput.value) || 0;
+            
+            if (time <= 0) {
+                allToolsHaveTime = false;
+                return;
+            }
+            
+            selectedTools[tool].time = time;
+            totalTime += time;
+            
+            const props = selectedTools[tool].properties;
+            weightedSetupTime += setupTimeScores[props.setupTime] * time;
+            weightedSkillLevel += skillLevelScores[props.skillLevel] * time;
+            weightedPortability += portabilityScores[props.portability] * time;
+        });
+        
+        if (!allToolsHaveTime) {
+            alert('Please enter time for all selected tools');
+            return;
+        }
+        
+        const avgSetupTime = weightedSetupTime / totalTime;
+        const avgSkillLevel = weightedSkillLevel / totalTime;
+        const avgPortability = weightedPortability / totalTime;
+        
+        let score = 0;
+        let details = '';
+        
+        if (connectionType === 'Cementitious') {
+            score = (avgSetupTime * 0.22) + (avgSkillLevel * 0.50) + (avgPortability * 0.28);
+            
+            details = `
+                <div><strong>Calculation (Cementitious Connection):</strong></div>
+                <div>Score = (Setup Time × 0.22) + (Skill Level × 0.50) + (Portability × 0.28)</div>
+                <div>Score = (${avgSetupTime.toFixed(3)} × 0.22) + (${avgSkillLevel.toFixed(3)} × 0.50) + (${avgPortability.toFixed(3)} × 0.28)</div>
+                <div><strong>Score = ${score.toFixed(4)}</strong></div>
+                <div style="margin-top: 15px;">
+                    <strong>Tools Used:</strong><br>
+            `;
+            
+            Object.keys(selectedTools).forEach(tool => {
+                details += `• ${tool}: ${selectedTools[tool].time} minutes<br>`;
+            });
+            
+            details += `
+                    <strong>Total Time:</strong> ${totalTime} minutes<br>
+                    <strong>Number of Connectors:</strong> ${numberOfConnectors} (Score: ${connectorScore})<br>
+                    <strong>Weighted Averages:</strong><br>
+                    • Setup Time: ${avgSetupTime.toFixed(3)}<br>
+                    • Skill Level: ${avgSkillLevel.toFixed(3)}<br>
+                    • Portability: ${avgPortability.toFixed(3)}
+                </div>
+            `;
+        }
+        
+        score = Math.max(0, Math.min(1, score));
+        
+        calculationResults.easeOfDisassembly = score;
+        
+        const resultDiv = document.getElementById('disassemblyResult');
+        const scoreDiv = document.getElementById('disassemblyScore');
+        const detailsDiv = document.getElementById('disassemblyDetails');
+        
+        resultDiv.classList.remove('hidden');
+        scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(score)}">${(score * 100).toFixed(1)}%</span>`;
+        detailsDiv.innerHTML = details;
+        
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+        
+    } catch (error) {
+        console.error('Error calculating ease of disassembly:', error);
+        alert('Error in calculation. Please check your inputs.');
+    }
+}
+
+// Get rating color based on score
+function getRatingColor(score) {
+    if (score >= 0.75) return "#4CAF50";
+    if (score >= 0.5) return "#FFC107";
+    if (score >= 0.25) return "#FF9800";
+    return "#F44336";
+}
+
+// Make functions globally accessible
+window.showTab = showTab;
+window.updateJointArea = updateJointArea;
+window.updateReductionFactor = updateReductionFactor;
+window.calculateReinforcementArea = calculateReinforcementArea;
+window.toggleNoWaste = toggleNoWaste;
+window.calculateEndOfCycleWaste = calculateEndOfCycleWaste;
+window.calculatePrefabricationDegree = calculatePrefabricationDegree;
+window.toggleToolStatic = toggleToolStatic;
+window.updateDisassemblyParameters = updateDisassemblyParameters;
+window.calculateEaseOfDisassembly = calculateEaseOfDisassembly;
+
+console.log('Construction Reusability Calculator loaded successfully');
+console.log('Available tools:', Object.keys(toolProperties));
+console.log('Reduction factors loaded:', Object.keys(reductionFactors));<br>
+                    <strong>Weighted Averages:</strong><br>
+                    • Setup Time: ${avgSetupTime.toFixed(3)}<br>
+                    • Skill Level: ${avgSkillLevel.toFixed(3)}<br>
+                    • Portability: ${avgPortability.toFixed(3)}
+                </div>
+            `;
+        } else {
+            let connectorScore = 1;
+            if (connectionType === 'Other') {
+                connectorScore = 1;
+            } else if (connectionType === 'Screw' || connectionType === 'Bolt') {
+                if (numberOfConnectors <= 2) {
+                    connectorScore = 1;
+                } else if (numberOfConnectors === 3 || numberOfConnectors === 5) {
+                    connectorScore = 0.95;
+                } else {
+                    connectorScore = 0.9;
+                }
+            }
+            
+            score = (avgSetupTime * 0.15) + (avgSkillLevel * 0.48) + (avgPortability * 0.22) + (connectorScore * 0.15);
+            
+            details = `
+                <div><strong>Calculation (${connectionType} Connection):</strong></div>
+                <div>Score = (Setup Time × 0.15) + (Skill Level × 0.48) + (Portability × 0.22) + (Connectors × 0.15)</div>
+                <div>Score = (${avgSetupTime.toFixed(3)} × 0.15) + (${avgSkillLevel.toFixed(3)} × 0.48) + (${avgPortability.toFixed(3)} × 0.22) + (${connectorScore} × 0.15)</div>
+                <div><strong>Score = ${score.toFixed(4)}</strong></div>
+                <div style="margin-top: 15px;">
+                    <strong>Tools Used:</strong><br>
+            `;
+            
+            Object.keys(selectedTools).forEach(tool => {
+                details += `• ${tool}: ${selectedTools[tool].time} minutes<br>`;
+            });
+            
+            details += `
+                    <strong>Total Time:</strong> ${totalTime} minutes// Construction Connection Reusability Assessment Calculator
+// Complete JavaScript implementation
+
+// Tool properties data with damage and precision classifications
+const toolProperties = {
+    "Battery Disc Saw": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "High",
+        minorDamage: "Moderate",
+        majorDamage: "Moderate", 
+        precision: "High"
+    },
+    "Corded Disc Saw": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "Medium",
+        minorDamage: "Moderate",
+        majorDamage: "Moderate", 
+        precision: "High"
+    },
+    "Petrol Ring Saw": { 
+        setupTime: "Low", 
+        skillLevel: "Intermediate", 
+        portability: "High",
+        minorDamage: "Moderate",
+        majorDamage: "High", 
+        precision: "Moderate"
+    },
+    "Corded Ring Saw": { 
+        setupTime: "Low", 
+        skillLevel: "Intermediate", 
+        portability: "Medium",
+        minorDamage: "Moderate",
+        majorDamage: "High", 
+        precision: "Moderate"
+    },
+    "Petrol Chain Saw": { 
+        setupTime: "Low", 
+        skillLevel: "Intermediate", 
+        portability: "High",
+        minorDamage: "Moderate",
+        majorDamage: "High", 
+        precision: "Low"
+    },
+    "Corded Chain Saw": { 
+        setupTime: "Low", 
+        skillLevel: "Intermediate", 
+        portability: "Medium",
+        minorDamage: "Moderate",
+        majorDamage: "High", 
+        precision: "Low"
+    },
+    "Walk behind floor saw": { 
+        setupTime: "Low", 
+        skillLevel: "Intermediate", 
+        portability: "Medium",
+        minorDamage: "Low",
+        majorDamage: "Moderate", 
+        precision: "Moderate"
+    },
+    "Automated Wall Saw": { 
+        setupTime: "High", 
+        skillLevel: "Intermediate", 
+        portability: "Very Low",
+        minorDamage: "Low",
+        majorDamage: "Low", 
+        precision: "High"
+    },
+    "Hydro blast": { 
+        setupTime: "High", 
+        skillLevel: "Advanced", 
+        portability: "Low",
+        minorDamage: "High",
+        majorDamage: "Low", 
+        precision: "Low"
+    },
+    "Blow torch": { 
+        setupTime: "Moderate", 
+        skillLevel: "Intermediate", 
+        portability: "High",
+        minorDamage: "Low",
+        majorDamage: "Low", 
+        precision: "Moderate"
+    },
+    "Demolition Hammer": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "Medium",
+        minorDamage: "High",
+        majorDamage: "Moderate", 
+        precision: "Low"
+    },
+    "Torque Wrench": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "High",
+        minorDamage: "Low",
+        majorDamage: "Low", 
+        precision: "High"
+    },
+    "Angle Grinder": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "High",
+        minorDamage: "Moderate",
+        majorDamage: "High", 
+        precision: "Moderate"
+    },
+    "Hydraulic Piston": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "High",
+        minorDamage: "High",
+        majorDamage: "Low", 
+        precision: "High"
+    },
+    "Welder": { 
+        setupTime: "Moderate", 
+        skillLevel: "Intermediate", 
+        portability: "High",
+        minorDamage: "Low",
+        majorDamage: "Low", 
+        precision: "Moderate"
+    },
+    "Diamond Drill": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "High",
+        minorDamage: "Very High",
+        majorDamage: "High", 
+        precision: "Moderate"
+    },
+    "Impact Wrench": { 
+        setupTime: "Low", 
+        skillLevel: "Basic", 
+        portability: "High",
+        minorDamage: "Very High",
+        majorDamage: "Low", 
+        precision: "High"
+    },
+    "Rotary Hammer": { 
+        setupTime: "Low", 
+        skillLevel: "Intermediate", 
+        portability: "High",
+        minorDamage: "Very High",
+        majorDamage: "Moderate", 
+        precision: "Low"
+    }
+};
+
+// Score mappings for ease of disassembly/reassembly
+const setupTimeScores = { "Low": 1, "Moderate": 0.5, "High": 0 };
+const skillLevelScores = { "Basic": 1, "Intermediate": 0.5, "Advanced": 0 };
+const portabilityScores = { "High": 1, "Medium": 0.66, "Low": 0.33, "Very Low": 0 };
+
 // Damage probability lambda values (per minute)
 const minorDamageLambda = { "Low": 0.0074, "Moderate": 0.0170, "High": 0.0305, "Very High": 0.0536 };
 const majorDamageLambda = { "Low": 0.0035, "Moderate": 0.0074, "High": 0.0119 };
