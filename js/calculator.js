@@ -310,8 +310,13 @@ function calculateEaseOfReassembly() {
         const connectionType = document.getElementById('reassemblyConnectionType').value;
         const numberOfConnectors = parseFloat(document.getElementById('reassemblyNumberOfConnectors').value) || 0;
         
-        if (!connectionType || Object.keys(selectedReassemblyTools).length === 0) {
-            alert('Please select at least one tool and connection type for reassembly');
+        if (!connectionType) {
+            alert('Please select a connection type for reassembly');
+            return;
+        }
+        
+        if (Object.keys(selectedReassemblyTools).length === 0) {
+            alert('Please select at least one reassembly tool');
             return;
         }
         
@@ -320,28 +325,43 @@ function calculateEaseOfReassembly() {
         let weightedSkillLevel = 0;
         let weightedPortability = 0;
         let allToolsHaveTime = true;
+        let missingTimeTools = [];
         
         Object.keys(selectedReassemblyTools).forEach(tool => {
             const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
             const timeInput = document.getElementById('time_input_' + id);
+            
+            if (!timeInput) {
+                console.error(`Time input not found for reassembly tool: ${tool} (ID: time_input_${id})`);
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool);
+                return;
+            }
+            
             const time = parseFloat(timeInput.value) || 0;
             
             if (time <= 0) {
                 allToolsHaveTime = false;
+                missingTimeTools.push(tool);
                 return;
             }
             
             selectedReassemblyTools[tool].time = time;
             totalTime += time;
             
-            const props = selectedReassemblyTools[tool].properties;
+            const props = selectedReassemblyTools[tool];
             weightedSetupTime += setupTimeScores[props.setupTime] * time;
             weightedSkillLevel += skillLevelScores[props.skillLevel] * time;
             weightedPortability += portabilityScores[props.portability] * time;
         });
         
         if (!allToolsHaveTime) {
-            alert('Please enter time for all selected reassembly tools');
+            alert(`Please enter time for the following reassembly tools: ${missingTimeTools.join(', ')}`);
+            return;
+        }
+        
+        if (totalTime === 0) {
+            alert('Total time cannot be zero. Please enter valid time values.');
             return;
         }
         
@@ -420,7 +440,9 @@ function calculateEaseOfReassembly() {
         
     } catch (error) {
         console.error('Error calculating ease of reassembly:', error);
-        alert('Error in calculation. Please check your inputs.');
+        console.error('Error details:', error.message);
+        console.error('Stack trace:', error.stack);
+        alert('Error in reassembly calculation. Check console for details.');
     }
 };
 
@@ -1132,8 +1154,13 @@ function calculateEaseOfDisassembly() {
         const connectionType = document.getElementById('disassemblyConnectionType').value;
         const numberOfConnectors = parseFloat(document.getElementById('numberOfConnectors').value) || 0;
         
-        if (!connectionType || Object.keys(selectedTools).length === 0) {
-            alert('Please select at least one tool and connection type');
+        if (!connectionType) {
+            alert('Please select a connection type for disassembly');
+            return;
+        }
+        
+        if (Object.keys(selectedTools).length === 0) {
+            alert('Please select at least one disassembly tool');
             return;
         }
         
@@ -1142,14 +1169,24 @@ function calculateEaseOfDisassembly() {
         let weightedSkillLevel = 0;
         let weightedPortability = 0;
         let allToolsHaveTime = true;
+        let missingTimeTools = [];
         
         Object.keys(selectedTools).forEach(tool => {
             const id = tool.replace(/\s+/g, '_').toLowerCase();
             const timeInput = document.getElementById('time_input_' + id);
+            
+            if (!timeInput) {
+                console.error(`Time input not found for tool: ${tool} (ID: time_input_${id})`);
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool);
+                return;
+            }
+            
             const time = parseFloat(timeInput.value) || 0;
             
             if (time <= 0) {
                 allToolsHaveTime = false;
+                missingTimeTools.push(tool);
                 return;
             }
             
@@ -1163,7 +1200,12 @@ function calculateEaseOfDisassembly() {
         });
         
         if (!allToolsHaveTime) {
-            alert('Please enter time for all selected tools');
+            alert(`Please enter time for the following disassembly tools: ${missingTimeTools.join(', ')}`);
+            return;
+        }
+        
+        if (totalTime === 0) {
+            alert('Total time cannot be zero. Please enter valid time values.');
             return;
         }
         
@@ -1242,7 +1284,9 @@ function calculateEaseOfDisassembly() {
         
     } catch (error) {
         console.error('Error calculating ease of disassembly:', error);
-        alert('Error in calculation. Please check your inputs.');
+        console.error('Error details:', error.message);
+        console.error('Stack trace:', error.stack);
+        alert('Error in disassembly calculation. Check console for details.');
     }
 }
 
