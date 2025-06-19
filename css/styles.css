@@ -822,26 +822,24 @@ body {
     border-radius: 3px;
     text-align: center;
     font-weight: 500;
+    color: white;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
 }
 
 .damage-low {
-    background: #d4edda;
-    color: #155724;
+    background: linear-gradient(135deg, #4caf50, #45a049);
 }
 
 .damage-moderate {
-    background: #fff3cd;
-    color: #856404;
+    background: linear-gradient(135deg, #ff9800, #f57c00);
 }
 
 .damage-high {
-    background: #f8d7da;
-    color: #721c24;
+    background: linear-gradient(135deg, #f44336, #d32f2f);
 }
 
 .damage-very-high {
-    background: #f5c6cb;
-    color: #721c24;
+    background: linear-gradient(135deg, #8e24aa, #7b1fa2);
 }
 
 /* Progress Indicators */
