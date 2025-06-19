@@ -308,11 +308,22 @@ let calculationResults = {};
 
 // Initialize application
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - initializing...');
     initializeToolSelection();
-    initializeReassemblyToolSelection();
-    updateConnectionTypeOptions();
     setupReassemblyConnectionTypeListener();
+    updateConnectionTypeOptions();
+    
+    // Initialize reassembly tools with a delay to ensure DOM is ready
+    setTimeout(() => {
+        initializeReassemblyToolSelection();
+    }, 500);
 });
+
+// Alternative initialization function for manual trigger
+function forceInitializeReassemblyTools() {
+    console.log('Force initializing reassembly tools...');
+    initializeReassemblyToolSelection();
+}
 
 // Tab switching functionality
 function showTab(tabName) {
@@ -380,43 +391,53 @@ function initializeToolSelection() {
 
 // Initialize reassembly tool selection grid
 function initializeReassemblyToolSelection() {
-    const grid = document.getElementById('reassemblyToolSelectionGrid');
-    if (!grid) return;
-    
-    grid.innerHTML = '';
-    const toolList = Object.keys(reassemblyToolProperties);
-    
-    toolList.forEach(tool => {
-        const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
-        const toolItem = document.createElement('div');
-        toolItem.className = 'tool-item';
-        toolItem.innerHTML = `
-            <div class="tool-header">
-                <input type="checkbox" id="tool_${id}" class="tool-checkbox" />
-                <label for="tool_${id}" class="tool-label">${tool}</label>
-            </div>
-            <div class="tool-properties">
-                Setup: ${reassemblyToolProperties[tool].setupTime} |
-                Skill: ${reassemblyToolProperties[tool].skillLevel} |
-                Portability: ${reassemblyToolProperties[tool].portability}
-            </div>
-            <div class="tool-damage-info">
-                <div class="damage-indicator ${getDamageClass(reassemblyToolProperties[tool].minorDamage)}">Minor: ${reassemblyToolProperties[tool].minorDamage}</div>
-                <div class="damage-indicator ${getDamageClass(reassemblyToolProperties[tool].majorDamage)}">Major: ${reassemblyToolProperties[tool].majorDamage}</div>
-                <div class="damage-indicator ${getDamageClass(reassemblyToolProperties[tool].precision)}">Precision: ${reassemblyToolProperties[tool].precision}</div>
-            </div>
-            <div id="time_${id}" class="time-input hidden">
-                <label>Time (minutes):</label>
-                <input type="number" id="time_input_${id}" min="0" step="0.1" placeholder="Enter time">
-            </div>
-        `;
+    // Add a small delay to ensure DOM is fully loaded
+    setTimeout(() => {
+        const grid = document.getElementById('reassemblyToolSelectionGrid');
+        if (!grid) {
+            console.log('Reassembly tool grid not found, retrying...');
+            return;
+        }
         
-        grid.appendChild(toolItem);
+        console.log('Initializing reassembly tools...');
+        grid.innerHTML = '';
+        const toolList = Object.keys(reassemblyToolProperties);
+        console.log('Reassembly tools to display:', toolList);
         
-        // Add event listener to checkbox
-        const checkbox = document.getElementById('tool_' + id);
-        checkbox.addEventListener('change', () => toggleReassemblyTool(tool));
-    });
+        toolList.forEach(tool => {
+            const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
+            const toolItem = document.createElement('div');
+            toolItem.className = 'tool-item';
+            toolItem.innerHTML = `
+                <div class="tool-header">
+                    <input type="checkbox" id="tool_${id}" class="tool-checkbox" />
+                    <label for="tool_${id}" class="tool-label">${tool}</label>
+                </div>
+                <div class="tool-properties">
+                    Setup: ${reassemblyToolProperties[tool].setupTime} |
+                    Skill: ${reassemblyToolProperties[tool].skillLevel} |
+                    Portability: ${reassemblyToolProperties[tool].portability}
+                </div>
+                <div class="tool-damage-info">
+                    <div class="damage-indicator ${getDamageClass(reassemblyToolProperties[tool].minorDamage)}">Minor: ${reassemblyToolProperties[tool].minorDamage}</div>
+                    <div class="damage-indicator ${getDamageClass(reassemblyToolProperties[tool].majorDamage)}">Major: ${reassemblyToolProperties[tool].majorDamage}</div>
+                    <div class="damage-indicator ${getDamageClass(reassemblyToolProperties[tool].precision)}">Precision: ${reassemblyToolProperties[tool].precision}</div>
+                </div>
+                <div id="time_${id}" class="time-input hidden">
+                    <label>Time (minutes):</label>
+                    <input type="number" id="time_input_${id}" min="0" step="0.1" placeholder="Enter time">
+                </div>
+            `;
+            
+            grid.appendChild(toolItem);
+            
+            // Add event listener to checkbox
+            const checkbox = document.getElementById('tool_' + id);
+            checkbox.addEventListener('change', () => toggleReassemblyTool(tool));
+        });
+        
+        console.log('Reassembly tools initialized successfully');
+    }, 100);
 }
 
 // Toggle reassembly tool selection
@@ -981,6 +1002,7 @@ window.calculatePrefabricationDegree = calculatePrefabricationDegree;
 window.updateDisassemblyParameters = updateDisassemblyParameters;
 window.calculateEaseOfDisassembly = calculateEaseOfDisassembly;
 window.calculateEaseOfReassembly = calculateEaseOfReassembly;
+window.forceInitializeReassemblyTools = forceInitializeReassemblyTools;
 
 console.log('Construction Reusability Calculator loaded successfully');
 console.log('Available tools:', Object.keys(toolProperties));
