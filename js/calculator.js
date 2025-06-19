@@ -149,6 +149,161 @@ const toolProperties = {
     }
 }
 
+// Calculate damage probability using exponential distribution
+function calculateDamageProbabilityForTools(tools, damageType) {
+    let totalScore = 1; // Start with 1 (no damage probability)
+    
+    tools.forEach(toolData => {
+        const time = toolData.time;
+        let lambda = 0;
+        
+        if (damageType === 'minor') {
+            lambda = minorDamageLambda[toolData.properties.minorDamage] || 0;
+            const probability = 1 - Math.exp(-lambda * time);
+            totalScore *= (1 - probability); // Probability of NO damage
+        } else if (damageType === 'major') {
+            lambda = majorDamageLambda[toolData.properties.majorDamage] || 0;
+            const probability = 1 - Math.exp(-lambda * time);
+            totalScore *= (1 - probability); // Probability of NO damage
+        } else if (damageType === 'precision') {
+            lambda = precisionLambda[toolData.properties.precision] || 0;
+            const probability = Math.exp(-lambda * time); // For precision, higher is better
+            totalScore *= probability;
+        }
+    });
+    
+    return totalScore;
+}
+
+// Calculate overall damage probability score
+function calculateDamageProbability() {
+    try {
+        // Check if we have tools selected for both disassembly and reassembly
+        if (Object.keys(selectedTools).length === 0) {
+            alert('Please select disassembly tools and enter their times first');
+            return;
+        }
+        
+        if (Object.keys(selectedReassemblyTools).length === 0) {
+            alert('Please select reassembly tools and enter their times first');
+            return;
+        }
+        
+        // Prepare disassembly tools data
+        const disassemblyToolsData = [];
+        let allDisassemblyToolsHaveTime = true;
+        
+        Object.keys(selectedTools).forEach(tool => {
+            const id = tool.replace(/\s+/g, '_').toLowerCase();
+            const timeInput = document.getElementById('time_input_' + id);
+            const time = parseFloat(timeInput.value) || 0;
+            
+            if (time <= 0) {
+                allDisassemblyToolsHaveTime = false;
+                return;
+            }
+            
+            disassemblyToolsData.push({
+                name: tool,
+                time: time,
+                properties: selectedTools[tool].properties
+            });
+        });
+        
+        // Prepare reassembly tools data
+        const reassemblyToolsData = [];
+        let allReassemblyToolsHaveTime = true;
+        
+        Object.keys(selectedReassemblyTools).forEach(tool => {
+            const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
+            const timeInput = document.getElementById('time_input_' + id);
+            const time = parseFloat(timeInput.value) || 0;
+            
+            if (time <= 0) {
+                allReassemblyToolsHaveTime = false;
+                return;
+            }
+            
+            reassemblyToolsData.push({
+                name: tool,
+                time: time,
+                properties: selectedReassemblyTools[tool]
+            });
+        });
+        
+        if (!allDisassemblyToolsHaveTime) {
+            alert('Please enter time for all selected disassembly tools');
+            return;
+        }
+        
+        if (!allReassemblyToolsHaveTime) {
+            alert('Please enter time for all selected reassembly tools');
+            return;
+        }
+        
+        // Calculate damage probabilities for each type
+        // Disassembly probabilities
+        const minorDisassembly = calculateDamageProbabilityForTools(disassemblyToolsData, 'minor');
+        const majorDisassembly = calculateDamageProbabilityForTools(disassemblyToolsData, 'major');
+        const precisionDisassembly = calculateDamageProbabilityForTools(disassemblyToolsData, 'precision');
+        
+        // Reassembly probabilities
+        const minorReassembly = calculateDamageProbabilityForTools(reassemblyToolsData, 'minor');
+        const majorReassembly = calculateDamageProbabilityForTools(reassemblyToolsData, 'major');
+        const precisionReassembly = calculateDamageProbabilityForTools(reassemblyToolsData, 'precision');
+        
+        // Combined scores: (Disassembly + Reassembly) / 2
+        const minorCombined = (minorDisassembly + minorReassembly) / 2;
+        const majorCombined = (majorDisassembly + majorReassembly) / 2;
+        const precisionCombined = (precisionDisassembly + precisionReassembly) / 2;
+        
+        // Weighted final score
+        const finalScore = (minorCombined * damageWeights.minor) + 
+                          (majorCombined * damageWeights.major) + 
+                          (precisionCombined * damageWeights.precision);
+        
+        // Store result
+        calculationResults.damageProbability = finalScore;
+        
+        // Display results
+        const resultDiv = document.getElementById('damageProbabilityResult');
+        const scoreDiv = document.getElementById('damageProbabilityScore');
+        const detailsDiv = document.getElementById('damageProbabilityDetails');
+        
+        resultDiv.classList.remove('hidden');
+        scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(finalScore)}">${(finalScore * 100).toFixed(1)}%</span>`;
+        
+        detailsDiv.innerHTML = `
+            <div><strong>Damage Probability Calculation:</strong></div>
+            <div style="margin-top: 15px;"><strong>Disassembly Tools Analysis:</strong></div>
+            ${disassemblyToolsData.map(tool => `<div>• ${tool.name}: ${tool.time} minutes</div>`).join('')}
+            
+            <div style="margin-top: 15px;"><strong>Reassembly Tools Analysis:</strong></div>
+            ${reassemblyToolsData.map(tool => `<div>• ${tool.name}: ${tool.time} minutes</div>`).join('')}
+            
+            <div style="margin-top: 15px;"><strong>Individual Scores:</strong></div>
+            <div>Minor Damage - Disassembly: ${(minorDisassembly * 100).toFixed(1)}%, Reassembly: ${(minorReassembly * 100).toFixed(1)}%</div>
+            <div>Major Damage - Disassembly: ${(majorDisassembly * 100).toFixed(1)}%, Reassembly: ${(majorReassembly * 100).toFixed(1)}%</div>
+            <div>Precision - Disassembly: ${(precisionDisassembly * 100).toFixed(1)}%, Reassembly: ${(precisionReassembly * 100).toFixed(1)}%</div>
+            
+            <div style="margin-top: 15px;"><strong>Combined Scores:</strong></div>
+            <div>Minor Combined: ${(minorCombined * 100).toFixed(1)}% (Weight: ${damageWeights.minor})</div>
+            <div>Major Combined: ${(majorCombined * 100).toFixed(1)}% (Weight: ${damageWeights.major})</div>
+            <div>Precision Combined: ${(precisionCombined * 100).toFixed(1)}% (Weight: ${damageWeights.precision})</div>
+            
+            <div style="margin-top: 15px;"><strong>Final Calculation:</strong></div>
+            <div>Score = (${(minorCombined * 100).toFixed(1)}% × ${damageWeights.minor}) + (${(majorCombined * 100).toFixed(1)}% × ${damageWeights.major}) + (${(precisionCombined * 100).toFixed(1)}% × ${damageWeights.precision})</div>
+            <div><strong>Final Score = ${(finalScore * 100).toFixed(1)}%</strong></div>
+        `;
+        
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+        
+    } catch (error) {
+        console.error('Error calculating damage probability:', error);
+        alert('Error in calculation. Please check your inputs.');
+    }
+}
+
 // Calculate Ease of Reassembly Score
 function calculateEaseOfReassembly() {
     try {
@@ -269,8 +424,17 @@ function calculateEaseOfReassembly() {
     }
 };
 
-// Score mappings for ease of disassembly/reassembly
-const setupTimeScores = { "Low": 1, "Moderate": 0.5, "High": 0 };
+// Damage probability lambda values (per minute)
+const minorDamageLambda = { "Low": 0.0074, "Moderate": 0.0170, "High": 0.0305, "Very High": 0.0536 };
+const majorDamageLambda = { "Low": 0.0035, "Moderate": 0.0074, "High": 0.0119 };
+const precisionLambda = { "High": 0.0035, "Moderate": 0.0170, "Low": 0.0402 };
+
+// Damage probability weights
+const damageWeights = {
+    minor: 0.28,
+    major: 0.52,
+    precision: 0.20
+};
 const skillLevelScores = { "Basic": 1, "Intermediate": 0.5, "Advanced": 0 };
 const portabilityScores = { "High": 1, "Medium": 0.66, "Low": 0.33, "Very Low": 0 };
 
@@ -1101,6 +1265,7 @@ window.calculatePrefabricationDegree = calculatePrefabricationDegree;
 window.updateDisassemblyParameters = updateDisassemblyParameters;
 window.calculateEaseOfDisassembly = calculateEaseOfDisassembly;
 window.calculateEaseOfReassembly = calculateEaseOfReassembly;
+window.calculateDamageProbability = calculateDamageProbability;
 window.forceInitializeReassemblyTools = forceInitializeReassemblyTools;
 
 console.log('Construction Reusability Calculator loaded successfully');
