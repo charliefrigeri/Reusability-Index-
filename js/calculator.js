@@ -1,5 +1,14 @@
 // Construction Connection Reusability Assessment Calculator
-// Complete JavaScript implementation
+// Complete JavaScript implementation - Fixed Version
+
+console.log('Loading calculator.js - Version 3.0');
+
+// Score mappings for ease of disassembly/reassembly (DEFINED FIRST)
+const setupTimeScores = { "Low": 1, "Moderate": 0.5, "High": 0 };
+const skillLevelScores = { "Basic": 1, "Intermediate": 0.5, "Advanced": 0 };
+const portabilityScores = { "High": 1, "Medium": 0.66, "Low": 0.33, "Very Low": 0 };
+
+console.log('Score mappings loaded:', { setupTimeScores, skillLevelScores, portabilityScores });
 
 // Tool properties data with damage and precision classifications
 const toolProperties = {
@@ -147,303 +156,6 @@ const toolProperties = {
         majorDamage: "Moderate", 
         precision: "Low"
     }
-}
-
-// Calculate damage probability using exponential distribution
-function calculateDamageProbabilityForTools(tools, damageType) {
-    let totalScore = 1; // Start with 1 (no damage probability)
-    
-    tools.forEach(toolData => {
-        const time = toolData.time;
-        let lambda = 0;
-        
-        if (damageType === 'minor') {
-            lambda = minorDamageLambda[toolData.properties.minorDamage] || 0;
-            const probability = 1 - Math.exp(-lambda * time);
-            totalScore *= (1 - probability); // Probability of NO damage
-        } else if (damageType === 'major') {
-            lambda = majorDamageLambda[toolData.properties.majorDamage] || 0;
-            const probability = 1 - Math.exp(-lambda * time);
-            totalScore *= (1 - probability); // Probability of NO damage
-        } else if (damageType === 'precision') {
-            lambda = precisionLambda[toolData.properties.precision] || 0;
-            const probability = Math.exp(-lambda * time); // For precision, higher is better
-            totalScore *= probability;
-        }
-    });
-    
-    return totalScore;
-}
-
-// Calculate overall damage probability score
-function calculateDamageProbability() {
-    try {
-        // Check if we have tools selected for both disassembly and reassembly
-        if (Object.keys(selectedTools).length === 0) {
-            alert('Please select disassembly tools and enter their times first');
-            return;
-        }
-        
-        if (Object.keys(selectedReassemblyTools).length === 0) {
-            alert('Please select reassembly tools and enter their times first');
-            return;
-        }
-        
-        // Prepare disassembly tools data
-        const disassemblyToolsData = [];
-        let allDisassemblyToolsHaveTime = true;
-        
-        Object.keys(selectedTools).forEach(tool => {
-            const id = tool.replace(/\s+/g, '_').toLowerCase();
-            const timeInput = document.getElementById('time_input_' + id);
-            const time = parseFloat(timeInput.value) || 0;
-            
-            if (time <= 0) {
-                allDisassemblyToolsHaveTime = false;
-                return;
-            }
-            
-            disassemblyToolsData.push({
-                name: tool,
-                time: time,
-                properties: selectedTools[tool].properties
-            });
-        });
-        
-        // Prepare reassembly tools data
-        const reassemblyToolsData = [];
-        let allReassemblyToolsHaveTime = true;
-        
-        Object.keys(selectedReassemblyTools).forEach(tool => {
-            const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
-            const timeInput = document.getElementById('time_input_' + id);
-            const time = parseFloat(timeInput.value) || 0;
-            
-            if (time <= 0) {
-                allReassemblyToolsHaveTime = false;
-                return;
-            }
-            
-            reassemblyToolsData.push({
-                name: tool,
-                time: time,
-                properties: selectedReassemblyTools[tool]
-            });
-        });
-        
-        if (!allDisassemblyToolsHaveTime) {
-            alert('Please enter time for all selected disassembly tools');
-            return;
-        }
-        
-        if (!allReassemblyToolsHaveTime) {
-            alert('Please enter time for all selected reassembly tools');
-            return;
-        }
-        
-        // Calculate damage probabilities for each type
-        // Disassembly probabilities
-        const minorDisassembly = calculateDamageProbabilityForTools(disassemblyToolsData, 'minor');
-        const majorDisassembly = calculateDamageProbabilityForTools(disassemblyToolsData, 'major');
-        const precisionDisassembly = calculateDamageProbabilityForTools(disassemblyToolsData, 'precision');
-        
-        // Reassembly probabilities
-        const minorReassembly = calculateDamageProbabilityForTools(reassemblyToolsData, 'minor');
-        const majorReassembly = calculateDamageProbabilityForTools(reassemblyToolsData, 'major');
-        const precisionReassembly = calculateDamageProbabilityForTools(reassemblyToolsData, 'precision');
-        
-        // Combined scores: (Disassembly + Reassembly) / 2
-        const minorCombined = (minorDisassembly + minorReassembly) / 2;
-        const majorCombined = (majorDisassembly + majorReassembly) / 2;
-        const precisionCombined = (precisionDisassembly + precisionReassembly) / 2;
-        
-        // Weighted final score
-        const finalScore = (minorCombined * damageWeights.minor) + 
-                          (majorCombined * damageWeights.major) + 
-                          (precisionCombined * damageWeights.precision);
-        
-        // Store result
-        calculationResults.damageProbability = finalScore;
-        
-        // Display results
-        const resultDiv = document.getElementById('damageProbabilityResult');
-        const scoreDiv = document.getElementById('damageProbabilityScore');
-        const detailsDiv = document.getElementById('damageProbabilityDetails');
-        
-        resultDiv.classList.remove('hidden');
-        scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(finalScore)}">${(finalScore * 100).toFixed(1)}%</span>`;
-        
-        detailsDiv.innerHTML = `
-            <div><strong>Damage Probability Calculation:</strong></div>
-            <div style="margin-top: 15px;"><strong>Disassembly Tools Analysis:</strong></div>
-            ${disassemblyToolsData.map(tool => `<div>• ${tool.name}: ${tool.time} minutes</div>`).join('')}
-            
-            <div style="margin-top: 15px;"><strong>Reassembly Tools Analysis:</strong></div>
-            ${reassemblyToolsData.map(tool => `<div>• ${tool.name}: ${tool.time} minutes</div>`).join('')}
-            
-            <div style="margin-top: 15px;"><strong>Individual Scores:</strong></div>
-            <div>Minor Damage - Disassembly: ${(minorDisassembly * 100).toFixed(1)}%, Reassembly: ${(minorReassembly * 100).toFixed(1)}%</div>
-            <div>Major Damage - Disassembly: ${(majorDisassembly * 100).toFixed(1)}%, Reassembly: ${(majorReassembly * 100).toFixed(1)}%</div>
-            <div>Precision - Disassembly: ${(precisionDisassembly * 100).toFixed(1)}%, Reassembly: ${(precisionReassembly * 100).toFixed(1)}%</div>
-            
-            <div style="margin-top: 15px;"><strong>Combined Scores:</strong></div>
-            <div>Minor Combined: ${(minorCombined * 100).toFixed(1)}% (Weight: ${damageWeights.minor})</div>
-            <div>Major Combined: ${(majorCombined * 100).toFixed(1)}% (Weight: ${damageWeights.major})</div>
-            <div>Precision Combined: ${(precisionCombined * 100).toFixed(1)}% (Weight: ${damageWeights.precision})</div>
-            
-            <div style="margin-top: 15px;"><strong>Final Calculation:</strong></div>
-            <div>Score = (${(minorCombined * 100).toFixed(1)}% × ${damageWeights.minor}) + (${(majorCombined * 100).toFixed(1)}% × ${damageWeights.major}) + (${(precisionCombined * 100).toFixed(1)}% × ${damageWeights.precision})</div>
-            <div><strong>Final Score = ${(finalScore * 100).toFixed(1)}%</strong></div>
-        `;
-        
-        resultDiv.scrollIntoView({ behavior: 'smooth' });
-        
-    } catch (error) {
-        console.error('Error calculating damage probability:', error);
-        alert('Error in calculation. Please check your inputs.');
-    }
-}
-
-// Calculate Ease of Reassembly Score
-function calculateEaseOfReassembly() {
-    try {
-        const connectionType = document.getElementById('reassemblyConnectionType').value;
-        const numberOfConnectors = parseFloat(document.getElementById('reassemblyNumberOfConnectors').value) || 0;
-        
-        if (!connectionType) {
-            alert('Please select a connection type for reassembly');
-            return;
-        }
-        
-        if (Object.keys(selectedReassemblyTools).length === 0) {
-            alert('Please select at least one reassembly tool');
-            return;
-        }
-        
-        let totalTime = 0;
-        let weightedSetupTime = 0;
-        let weightedSkillLevel = 0;
-        let weightedPortability = 0;
-        let allToolsHaveTime = true;
-        let missingTimeTools = [];
-        
-        Object.keys(selectedReassemblyTools).forEach(tool => {
-            const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
-            const timeInput = document.getElementById('time_input_' + id);
-            
-            if (!timeInput) {
-                console.error(`Time input not found for reassembly tool: ${tool} (ID: time_input_${id})`);
-                allToolsHaveTime = false;
-                missingTimeTools.push(tool);
-                return;
-            }
-            
-            const time = parseFloat(timeInput.value) || 0;
-            
-            if (time <= 0) {
-                allToolsHaveTime = false;
-                missingTimeTools.push(tool);
-                return;
-            }
-            
-            selectedReassemblyTools[tool].time = time;
-            totalTime += time;
-            
-            const props = selectedReassemblyTools[tool];
-            weightedSetupTime += setupTimeScores[props.setupTime] * time;
-            weightedSkillLevel += skillLevelScores[props.skillLevel] * time;
-            weightedPortability += portabilityScores[props.portability] * time;
-        });
-        
-        if (!allToolsHaveTime) {
-            alert(`Please enter time for the following reassembly tools: ${missingTimeTools.join(', ')}`);
-            return;
-        }
-        
-        if (totalTime === 0) {
-            alert('Total time cannot be zero. Please enter valid time values.');
-            return;
-        }
-        
-        const avgSetupTime = weightedSetupTime / totalTime;
-        const avgSkillLevel = weightedSkillLevel / totalTime;
-        const avgPortability = weightedPortability / totalTime;
-        
-        let score = 0;
-        let details = '';
-        let connectorScore = 1;
-        
-        if (connectionType === 'Cementitious') {
-            score = (avgSetupTime * 0.22) + (avgSkillLevel * 0.50) + (avgPortability * 0.28);
-            
-            details = `
-                <div><strong>Calculation (Cementitious Connection):</strong></div>
-                <div>Score = (Setup Time × 0.22) + (Skill Level × 0.50) + (Portability × 0.28)</div>
-                <div>Score = (${avgSetupTime.toFixed(3)} × 0.22) + (${avgSkillLevel.toFixed(3)} × 0.50) + (${avgPortability.toFixed(3)} × 0.28)</div>
-                <div><strong>Score = ${score.toFixed(4)}</strong></div>
-            `;
-        } else {
-            if (connectionType === 'Other') {
-                connectorScore = 1;
-            } else if (connectionType === 'Screw' || connectionType === 'Bolt') {
-                if (numberOfConnectors <= 2) {
-                    connectorScore = 1;
-                } else if (numberOfConnectors === 3 || numberOfConnectors === 5) {
-                    connectorScore = 0.95;
-                } else {
-                    connectorScore = 0.9;
-                }
-            }
-            
-            score = (avgSetupTime * 0.15) + (avgSkillLevel * 0.48) + (avgPortability * 0.22) + (connectorScore * 0.15);
-            
-            details = `
-                <div><strong>Calculation (${connectionType} Connection):</strong></div>
-                <div>Score = (Setup Time × 0.15) + (Skill Level × 0.48) + (Portability × 0.22) + (Connectors × 0.15)</div>
-                <div>Score = (${avgSetupTime.toFixed(3)} × 0.15) + (${avgSkillLevel.toFixed(3)} × 0.48) + (${avgPortability.toFixed(3)} × 0.22) + (${connectorScore} × 0.15)</div>
-                <div><strong>Score = ${score.toFixed(4)}</strong></div>
-            `;
-        }
-        
-        details += `
-            <div style="margin-top: 15px;">
-                <strong>Tools Used:</strong><br>
-        `;
-        
-        Object.keys(selectedReassemblyTools).forEach(tool => {
-            details += `• ${tool}: ${selectedReassemblyTools[tool].time} minutes<br>`;
-        });
-        
-        details += `
-                <strong>Total Time:</strong> ${totalTime} minutes<br>
-                <strong>Number of Connectors:</strong> ${numberOfConnectors} (Score: ${connectorScore})<br>
-                <strong>Weighted Averages:</strong><br>
-                • Setup Time: ${avgSetupTime.toFixed(3)}<br>
-                • Skill Level: ${avgSkillLevel.toFixed(3)}<br>
-                • Portability: ${avgPortability.toFixed(3)}
-            </div>
-        `;
-        
-        score = Math.max(0, Math.min(1, score));
-        
-        calculationResults.easeOfReassembly = score;
-        
-        const resultDiv = document.getElementById('reassemblyResult');
-        const scoreDiv = document.getElementById('reassemblyScore');
-        const detailsDiv = document.getElementById('reassemblyDetails');
-        
-        resultDiv.classList.remove('hidden');
-        scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(score)}">${(score * 100).toFixed(1)}%</span>`;
-        detailsDiv.innerHTML = details;
-        
-        resultDiv.scrollIntoView({ behavior: 'smooth' });
-        
-    } catch (error) {
-        console.error('Error calculating ease of reassembly:', error);
-        console.error('Error details:', error.message);
-        console.error('Stack trace:', error.stack);
-        alert('Error in reassembly calculation. Check console for details.');
-    }
 };
 
 // Damage probability lambda values (per minute)
@@ -456,23 +168,6 @@ const damageWeights = {
     minor: 0.28,
     major: 0.52,
     precision: 0.20
-};
-const skillLevelScores = { "Basic": 1, "Intermediate": 0.5, "Advanced": 0 };
-const portabilityScores = { "High": 1, "Medium": 0.66, "Low": 0.33, "Very Low": 0 };
-
-// Reduction factors for materials (from Table 1)
-const reductionFactors = {
-    "C12/15": { "IIIA": 2.03, "IIIB": 2.29, "IIIC": 2.50, "I": 1.82 },
-    "C20/25": { "IIIA": 1.98, "IIIB": 2.23, "IIIC": 2.44, "I": 1.69 },
-    "C30/37": { "IIIA": 1.85, "IIIB": 2.09, "IIIC": 2.30, "I": 1.57 },
-    "C40/50": { "IIIA": 1.74, "IIIB": 1.96, "IIIC": 1.00, "I": 1.46 },
-    "C45/55": { "IIIA": 1.70, "IIIB": 1.90, "IIIC": 2.10, "I": 1.44 },
-    "C50/60": { "IIIA": 1.53, "IIIB": 1.75, "IIIC": 1.00, "I": 1.28 },
-    "C55/67": { "IIIA": 1.58, "IIIB": 1.60, "IIIC": 1.00, "I": 1.38 },
-    "C60/76": { "IIIA": 1.52, "IIIB": 1.64, "IIIC": 1.00, "I": 1.29 },
-    "C70/85": { "IIIA": 1.27, "IIIB": 1.37, "IIIC": 1.00, "I": 1.10 },
-    "C80/95": { "IIIA": 1.15, "IIIB": 1.08, "IIIC": 1.00, "I": 1.04 },
-    "C90/105": { "IIIA": 1.08, "IIIB": 1.04, "IIIC": 1.00, "I": 1.04 }
 };
 
 // Tools available for reassembly (subset of disassembly tools)
@@ -543,56 +238,36 @@ const reassemblyToolProperties = {
     }
 };
 
+// Reduction factors for materials (from Table 1)
+const reductionFactors = {
+    "C12/15": { "IIIA": 2.03, "IIIB": 2.29, "IIIC": 2.50, "I": 1.82 },
+    "C20/25": { "IIIA": 1.98, "IIIB": 2.23, "IIIC": 2.44, "I": 1.69 },
+    "C30/37": { "IIIA": 1.85, "IIIB": 2.09, "IIIC": 2.30, "I": 1.57 },
+    "C40/50": { "IIIA": 1.74, "IIIB": 1.96, "IIIC": 1.00, "I": 1.46 },
+    "C45/55": { "IIIA": 1.70, "IIIB": 1.90, "IIIC": 2.10, "I": 1.44 },
+    "C50/60": { "IIIA": 1.53, "IIIB": 1.75, "IIIC": 1.00, "I": 1.28 },
+    "C55/67": { "IIIA": 1.58, "IIIB": 1.60, "IIIC": 1.00, "I": 1.38 },
+    "C60/76": { "IIIA": 1.52, "IIIB": 1.64, "IIIC": 1.00, "I": 1.29 },
+    "C70/85": { "IIIA": 1.27, "IIIB": 1.37, "IIIC": 1.00, "I": 1.10 },
+    "C80/95": { "IIIA": 1.15, "IIIB": 1.08, "IIIC": 1.00, "I": 1.04 },
+    "C90/105": { "IIIA": 1.08, "IIIB": 1.04, "IIIC": 1.00, "I": 1.04 }
+};
+
 // Global variables
 let selectedTools = {};
 let selectedReassemblyTools = {};
 let calculationResults = {};
 
-// Initialize application
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - initializing...');
-    
-    // Initialize disassembly tools first
-    initializeToolSelection();
-    
-    // Setup connection type listeners
-    updateConnectionTypeOptions();
-    setupReassemblyConnectionTypeListener();
-    
-    // Initialize reassembly tools with proper timing
-    setTimeout(() => {
-        console.log('Initializing reassembly tools...');
-        initializeReassemblyToolSelection();
-    }, 300);
-    
-    // Verify CSS is loaded
-    setTimeout(() => {
-        const testElement = document.querySelector('.tool-grid');
-        if (testElement) {
-            const styles = window.getComputedStyle(testElement);
-            console.log('CSS Grid Check - Display:', styles.display);
-            console.log('CSS Grid Check - Grid Template Columns:', styles.gridTemplateColumns);
-        }
-    }, 500);
-});
+console.log('All variables initialized successfully');
 
-// Alternative initialization function for manual trigger
-function forceInitializeReassemblyTools() {
-    console.log('=== FORCE INITIALIZE REASSEMBLY TOOLS ===');
-    console.log('Current reassemblyToolProperties:', reassemblyToolProperties);
-    console.log('Available functions:', {
-        initializeReassemblyToolSelection: typeof initializeReassemblyToolSelection,
-        getDamageClass: typeof getDamageClass,
-        toggleReassemblyTool: typeof toggleReassemblyTool
-    });
-    
-    initializeReassemblyToolSelection();
-    
-    // Also test if the grid exists
-    const grid = document.getElementById('reassemblyToolSelectionGrid');
-    console.log('Grid element check:', grid ? 'FOUND' : 'NOT FOUND');
-    if (grid) {
-        console.log('Grid current content length:', grid.innerHTML.length);
+// Get damage indicator class
+function getDamageClass(level) {
+    switch(level) {
+        case 'Low': return 'damage-low';
+        case 'Moderate': return 'damage-moderate';
+        case 'High': return 'damage-high';
+        case 'Very High': return 'damage-very-high';
+        default: return 'damage-moderate';
     }
 }
 
@@ -606,17 +281,6 @@ function showTab(tabName) {
     
     document.getElementById(tabName).classList.add('active');
     event.target.classList.add('active');
-}
-
-// Get damage indicator class
-function getDamageClass(level) {
-    switch(level) {
-        case 'Low': return 'damage-low';
-        case 'Moderate': return 'damage-moderate';
-        case 'High': return 'damage-high';
-        case 'Very High': return 'damage-very-high';
-        default: return 'damage-moderate';
-    }
 }
 
 // Initialize tool selection grid
@@ -660,129 +324,6 @@ function initializeToolSelection() {
     });
 }
 
-// Initialize reassembly tool selection grid
-function initializeReassemblyToolSelection() {
-    console.log('=== REASSEMBLY TOOLS INITIALIZATION START ===');
-    
-    const grid = document.getElementById('reassemblyToolSelectionGrid');
-    if (!grid) {
-        console.error('ERROR: reassemblyToolSelectionGrid element not found!');
-        return;
-    }
-    
-    console.log('Grid element found:', grid);
-    console.log('Reassembly tool properties object:', reassemblyToolProperties);
-    console.log('Available tools:', Object.keys(reassemblyToolProperties));
-    
-    // Clear existing content
-    grid.innerHTML = '';
-    
-    const toolList = Object.keys(reassemblyToolProperties);
-    
-    if (toolList.length === 0) {
-        console.error('ERROR: No tools found in reassemblyToolProperties!');
-        grid.innerHTML = '<div style="padding: 20px; color: red;">Error: No reassembly tools available</div>';
-        return;
-    }
-    
-    console.log(`Creating ${toolList.length} tool items...`);
-    
-    toolList.forEach((tool, index) => {
-        console.log(`Creating tool ${index + 1}/${toolList.length}: ${tool}`);
-        
-        const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
-        const properties = reassemblyToolProperties[tool];
-        
-        if (!properties) {
-            console.error(`ERROR: No properties found for tool: ${tool}`);
-            return;
-        }
-        
-        const toolItem = document.createElement('div');
-        toolItem.className = 'tool-item';
-        
-        // Create the complete tool item HTML with proper structure
-        toolItem.innerHTML = `
-            <div class="tool-header">
-                <input type="checkbox" id="tool_${id}" class="tool-checkbox" />
-                <label for="tool_${id}" class="tool-label">${tool}</label>
-            </div>
-            <div class="tool-properties">
-                Setup: ${properties.setupTime} | Skill: ${properties.skillLevel} | Portability: ${properties.portability}
-            </div>
-            <div class="tool-damage-info">
-                <div class="damage-indicator ${getDamageClass(properties.minorDamage)}">Minor: ${properties.minorDamage}</div>
-                <div class="damage-indicator ${getDamageClass(properties.majorDamage)}">Major: ${properties.majorDamage}</div>
-                <div class="damage-indicator ${getDamageClass(properties.precision)}">Precision: ${properties.precision}</div>
-            </div>
-            <div id="time_${id}" class="time-input hidden">
-                <label>Time (minutes):</label>
-                <input type="number" id="time_input_${id}" min="0" step="0.1" placeholder="Enter time">
-            </div>
-        `;
-        
-        grid.appendChild(toolItem);
-        console.log(`Tool item created and added for: ${tool}`);
-    });
-    
-    // Add event listeners after all tools are created
-    setTimeout(() => {
-        toolList.forEach(tool => {
-            const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
-            const checkbox = document.getElementById('tool_' + id);
-            if (checkbox) {
-                checkbox.addEventListener('change', () => toggleReassemblyTool(tool));
-                console.log(`Event listener added for: ${tool}`);
-            } else {
-                console.error(`ERROR: Checkbox not found for tool: ${tool} (ID: tool_${id})`);
-            }
-        });
-    }, 100);
-    
-    console.log('=== REASSEMBLY TOOLS INITIALIZATION COMPLETE ===');
-    console.log('Grid HTML preview:', grid.innerHTML.substring(0, 500) + '...');
-}
-
-// Toggle reassembly tool selection
-function toggleReassemblyTool(tool) {
-    const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
-    const checkbox = document.getElementById('tool_' + id);
-    const timeInputDiv = document.getElementById('time_' + id);
-    const toolItem = checkbox.closest('.tool-item');
-    
-    if (checkbox.checked) {
-        selectedReassemblyTools[tool] = {
-            time: 0,
-            properties: reassemblyToolProperties[tool]
-        };
-        timeInputDiv.classList.remove('hidden');
-        toolItem.classList.add('selected');
-    } else {
-        delete selectedReassemblyTools[tool];
-        timeInputDiv.classList.add('hidden');
-        toolItem.classList.remove('selected');
-        document.getElementById('time_input_' + id).value = '';
-    }
-    
-    updateSelectedReassemblyToolsDisplay();
-}
-
-// Setup reassembly connection type listener
-function setupReassemblyConnectionTypeListener() {
-    const reassemblyConnectionType = document.getElementById('reassemblyConnectionType');
-    const reassemblyConnectorsGroup = document.getElementById('reassemblyConnectorsGroup');
-    
-    if (reassemblyConnectionType && reassemblyConnectorsGroup) {
-        reassemblyConnectionType.addEventListener('change', function() {
-            if (this.value === 'Cementitious' || this.value === '') {
-                reassemblyConnectorsGroup.style.display = 'none';
-            } else {
-                reassemblyConnectorsGroup.style.display = 'flex';
-            }
-        });
-    }
-}
-
 // Toggle tool selection
 function toggleTool(tool) {
     const id = tool.replace(/\s+/g, '_').toLowerCase();
@@ -807,33 +348,78 @@ function toggleTool(tool) {
     updateSelectedToolsDisplay();
 }
 
-// Update selected reassembly tools display
-function updateSelectedReassemblyToolsDisplay() {
-    const propertiesDisplay = document.getElementById('reassemblyToolPropertiesDisplay');
-    const propertiesList = document.getElementById('reassemblyToolPropertiesList');
-    
-    if (!propertiesDisplay || !propertiesList) return;
-    
-    if (Object.keys(selectedReassemblyTools).length > 0) {
-        propertiesDisplay.classList.remove('hidden');
-        let html = '<div><strong>Selected Reassembly Tools:</strong></div>';
-        
-        Object.keys(selectedReassemblyTools).forEach(tool => {
-            const properties = selectedReassemblyTools[tool].properties;
-            html += `
-                <div class="tool-property-item">
-                    <strong>${tool}</strong><br>
-                    Setup: ${properties.setupTime} (${setupTimeScores[properties.setupTime]}) | 
-                    Skill: ${properties.skillLevel} (${skillLevelScores[properties.skillLevel]}) | 
-                    Portability: ${properties.portability} (${portabilityScores[properties.portability]})
-                </div>
-            `;
-        });
-        
-        propertiesList.innerHTML = html;
-    } else {
-        propertiesDisplay.classList.add('hidden');
+// Initialize reassembly tool selection grid
+function initializeReassemblyToolSelection() {
+    const grid = document.getElementById('reassemblyToolSelectionGrid');
+    if (!grid) {
+        console.error('Reassembly grid not found');
+        return;
     }
+    
+    grid.innerHTML = '';
+    const toolList = Object.keys(reassemblyToolProperties);
+    
+    toolList.forEach(tool => {
+        const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
+        const toolItem = document.createElement('div');
+        toolItem.className = 'tool-item';
+        
+        toolItem.innerHTML = `
+            <div class="tool-header">
+                <input type="checkbox" id="tool_${id}" class="tool-checkbox" />
+                <label for="tool_${id}" class="tool-label">${tool}</label>
+            </div>
+            <div class="tool-properties">
+                Setup: ${reassemblyToolProperties[tool].setupTime} | Skill: ${reassemblyToolProperties[tool].skillLevel} | Portability: ${reassemblyToolProperties[tool].portability}
+            </div>
+            <div class="tool-damage-info">
+                <div class="damage-indicator ${getDamageClass(reassemblyToolProperties[tool].minorDamage)}">Minor: ${reassemblyToolProperties[tool].minorDamage}</div>
+                <div class="damage-indicator ${getDamageClass(reassemblyToolProperties[tool].majorDamage)}">Major: ${reassemblyToolProperties[tool].majorDamage}</div>
+                <div class="damage-indicator ${getDamageClass(reassemblyToolProperties[tool].precision)}">Precision: ${reassemblyToolProperties[tool].precision}</div>
+            </div>
+            <div id="time_${id}" class="time-input hidden">
+                <label>Time (minutes):</label>
+                <input type="number" id="time_input_${id}" min="0" step="0.1" placeholder="Enter time">
+            </div>
+        `;
+        
+        grid.appendChild(toolItem);
+    });
+    
+    // Add event listeners after all tools are created
+    setTimeout(() => {
+        toolList.forEach(tool => {
+            const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
+            const checkbox = document.getElementById('tool_' + id);
+            if (checkbox) {
+                checkbox.addEventListener('change', () => toggleReassemblyTool(tool));
+            }
+        });
+    }, 100);
+}
+
+// Toggle reassembly tool selection
+function toggleReassemblyTool(tool) {
+    const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
+    const checkbox = document.getElementById('tool_' + id);
+    const timeInputDiv = document.getElementById('time_' + id);
+    const toolItem = checkbox.closest('.tool-item');
+    
+    if (checkbox.checked) {
+        selectedReassemblyTools[tool] = {
+            time: 0,
+            properties: reassemblyToolProperties[tool]
+        };
+        timeInputDiv.classList.remove('hidden');
+        toolItem.classList.add('selected');
+    } else {
+        delete selectedReassemblyTools[tool];
+        timeInputDiv.classList.add('hidden');
+        toolItem.classList.remove('selected');
+        document.getElementById('time_input_' + id).value = '';
+    }
+    
+    updateSelectedReassemblyToolsDisplay();
 }
 
 // Update selected tools display
@@ -862,6 +448,51 @@ function updateSelectedToolsDisplay() {
         propertiesList.innerHTML = html;
     } else {
         propertiesDisplay.classList.add('hidden');
+    }
+}
+
+// Update selected reassembly tools display
+function updateSelectedReassemblyToolsDisplay() {
+    const propertiesDisplay = document.getElementById('reassemblyToolPropertiesDisplay');
+    const propertiesList = document.getElementById('reassemblyToolPropertiesList');
+    
+    if (!propertiesDisplay || !propertiesList) return;
+    
+    if (Object.keys(selectedReassemblyTools).length > 0) {
+        propertiesDisplay.classList.remove('hidden');
+        let html = '<div><strong>Selected Reassembly Tools:</strong></div>';
+        
+        Object.keys(selectedReassemblyTools).forEach(tool => {
+            const properties = selectedReassemblyTools[tool];
+            html += `
+                <div class="tool-property-item">
+                    <strong>${tool}</strong><br>
+                    Setup: ${properties.setupTime} (${setupTimeScores[properties.setupTime]}) | 
+                    Skill: ${properties.skillLevel} (${skillLevelScores[properties.skillLevel]}) | 
+                    Portability: ${properties.portability} (${portabilityScores[properties.portability]})
+                </div>
+            `;
+        });
+        
+        propertiesList.innerHTML = html;
+    } else {
+        propertiesDisplay.classList.add('hidden');
+    }
+}
+
+// Setup reassembly connection type listener
+function setupReassemblyConnectionTypeListener() {
+    const reassemblyConnectionType = document.getElementById('reassemblyConnectionType');
+    const reassemblyConnectorsGroup = document.getElementById('reassemblyConnectorsGroup');
+    
+    if (reassemblyConnectionType && reassemblyConnectorsGroup) {
+        reassemblyConnectionType.addEventListener('change', function() {
+            if (this.value === 'Cementitious' || this.value === '') {
+                reassemblyConnectorsGroup.style.display = 'none';
+            } else {
+                reassemblyConnectorsGroup.style.display = 'flex';
+            }
+        });
     }
 }
 
@@ -913,7 +544,6 @@ function updateReductionFactor() {
         if (reductionFactors[strengthClass] && reductionFactors[strengthClass][mortarType] !== undefined) {
             reductionFactor = reductionFactors[strengthClass][mortarType];
         } else {
-            // If undefined, return 1.00 as default
             reductionFactor = 1.00;
         }
     }
@@ -1168,16 +798,13 @@ function updateDisassemblyParameters() {
 
 // Calculate Ease of Disassembly Score
 function calculateEaseOfDisassembly() {
-    console.log('=== DISASSEMBLY CALCULATION START ===');
+    console.log('Starting disassembly calculation...');
+    console.log('setupTimeScores available:', typeof setupTimeScores, setupTimeScores);
     
     try {
         const connectionType = document.getElementById('disassemblyConnectionType').value;
         const numberOfConnectorsInput = document.getElementById('numberOfConnectors');
         const numberOfConnectors = numberOfConnectorsInput ? parseFloat(numberOfConnectorsInput.value) || 0 : 0;
-        
-        console.log('Connection Type:', connectionType);
-        console.log('Number of Connectors:', numberOfConnectors);
-        console.log('Selected Tools:', Object.keys(selectedTools));
         
         if (!connectionType) {
             alert('Please select a connection type for disassembly');
@@ -1195,25 +822,19 @@ function calculateEaseOfDisassembly() {
         let weightedPortability = 0;
         let allToolsHaveTime = true;
         let missingTimeTools = [];
-        let toolDetails = [];
         
         Object.keys(selectedTools).forEach(tool => {
             const id = tool.replace(/\s+/g, '_').toLowerCase();
             const timeInput = document.getElementById('time_input_' + id);
             
-            console.log(`Processing tool: ${tool}`);
-            console.log(`Looking for time input ID: time_input_${id}`);
-            console.log('Time input element:', timeInput);
-            
             if (!timeInput) {
-                console.error(`Time input not found for tool: ${tool} (ID: time_input_${id})`);
+                console.error(`Time input not found for tool: ${tool}`);
                 allToolsHaveTime = false;
                 missingTimeTools.push(tool);
                 return;
             }
             
             const time = parseFloat(timeInput.value) || 0;
-            console.log(`Time for ${tool}: ${time}`);
             
             if (time <= 0) {
                 allToolsHaveTime = false;
@@ -1221,66 +842,21 @@ function calculateEaseOfDisassembly() {
                 return;
             }
             
-            // Validate tool properties
             const props = selectedTools[tool].properties;
             if (!props) {
                 console.error(`No properties found for tool: ${tool}`);
-                console.error('Tool object:', selectedTools[tool]);
                 allToolsHaveTime = false;
                 missingTimeTools.push(tool + ' (missing properties)');
-                return;
-            }
-            
-            console.log(`Properties for ${tool}:`, props);
-            
-            // Check if score mappings exist
-            if (setupTimeScores[props.setupTime] === undefined) {
-                console.error(`Setup time score not found for: ${props.setupTime}`);
-                allToolsHaveTime = false;
-                missingTimeTools.push(tool + ' (invalid setup time)');
-                return;
-            }
-            
-            if (skillLevelScores[props.skillLevel] === undefined) {
-                console.error(`Skill level score not found for: ${props.skillLevel}`);
-                allToolsHaveTime = false;
-                missingTimeTools.push(tool + ' (invalid skill level)');
-                return;
-            }
-            
-            if (portabilityScores[props.portability] === undefined) {
-                console.error(`Portability score not found for: ${props.portability}`);
-                allToolsHaveTime = false;
-                missingTimeTools.push(tool + ' (invalid portability)');
                 return;
             }
             
             selectedTools[tool].time = time;
             totalTime += time;
             
-            const setupScore = setupTimeScores[props.setupTime];
-            const skillScore = skillLevelScores[props.skillLevel];
-            const portabilityScore = portabilityScores[props.portability];
-            
-            weightedSetupTime += setupScore * time;
-            weightedSkillLevel += skillScore * time;
-            weightedPortability += portabilityScore * time;
-            
-            toolDetails.push({
-                name: tool,
-                time: time,
-                setupScore: setupScore,
-                skillScore: skillScore,
-                portabilityScore: portabilityScore
-            });
-            
-            console.log(`${tool} - Setup: ${props.setupTime}(${setupScore}), Skill: ${props.skillLevel}(${skillScore}), Portability: ${props.portability}(${portabilityScore}), Time: ${time}`);
+            weightedSetupTime += setupTimeScores[props.setupTime] * time;
+            weightedSkillLevel += skillLevelScores[props.skillLevel] * time;
+            weightedPortability += portabilityScores[props.portability] * time;
         });
-        
-        console.log('All tools have time:', allToolsHaveTime);
-        console.log('Missing time tools:', missingTimeTools);
-        console.log('Total time:', totalTime);
-        console.log('Tool details:', toolDetails);
         
         if (!allToolsHaveTime) {
             alert(`Please enter time for the following disassembly tools: ${missingTimeTools.join(', ')}`);
@@ -1295,11 +871,6 @@ function calculateEaseOfDisassembly() {
         const avgSetupTime = weightedSetupTime / totalTime;
         const avgSkillLevel = weightedSkillLevel / totalTime;
         const avgPortability = weightedPortability / totalTime;
-        
-        console.log('Weighted averages:');
-        console.log('- Setup Time:', avgSetupTime);
-        console.log('- Skill Level:', avgSkillLevel);
-        console.log('- Portability:', avgPortability);
         
         let score = 0;
         let details = '';
@@ -1342,8 +913,8 @@ function calculateEaseOfDisassembly() {
                 <strong>Tools Used:</strong><br>
         `;
         
-        toolDetails.forEach(tool => {
-            details += `• ${tool.name}: ${tool.time} minutes<br>`;
+        Object.keys(selectedTools).forEach(tool => {
+            details += `• ${tool}: ${selectedTools[tool].time} minutes<br>`;
         });
         
         details += `
@@ -1358,19 +929,11 @@ function calculateEaseOfDisassembly() {
         
         score = Math.max(0, Math.min(1, score));
         
-        console.log('Final score:', score);
-        
         calculationResults.easeOfDisassembly = score;
         
         const resultDiv = document.getElementById('disassemblyResult');
         const scoreDiv = document.getElementById('disassemblyScore');
         const detailsDiv = document.getElementById('disassemblyDetails');
-        
-        if (!resultDiv || !scoreDiv || !detailsDiv) {
-            console.error('Result display elements not found');
-            alert('Error: Result display elements not found');
-            return;
-        }
         
         resultDiv.classList.remove('hidden');
         scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(score)}">${(score * 100).toFixed(1)}%</span>`;
@@ -1378,19 +941,310 @@ function calculateEaseOfDisassembly() {
         
         resultDiv.scrollIntoView({ behavior: 'smooth' });
         
-        console.log('=== DISASSEMBLY CALCULATION SUCCESS ===');
+    } catch (error) {
+        console.error('Error calculating ease of disassembly:', error);
+        alert('Error in disassembly calculation. Check console for details.');
+    }
+}
+
+// Calculate Ease of Reassembly Score
+function calculateEaseOfReassembly() {
+    console.log('Starting reassembly calculation...');
+    console.log('setupTimeScores available:', typeof setupTimeScores, setupTimeScores);
+    
+    try {
+        const connectionType = document.getElementById('reassemblyConnectionType').value;
+        const numberOfConnectorsInput = document.getElementById('reassemblyNumberOfConnectors');
+        const numberOfConnectors = numberOfConnectorsInput ? parseFloat(numberOfConnectorsInput.value) || 0 : 0;
+        
+        if (!connectionType) {
+            alert('Please select a connection type for reassembly');
+            return;
+        }
+        
+        if (Object.keys(selectedReassemblyTools).length === 0) {
+            alert('Please select at least one reassembly tool');
+            return;
+        }
+        
+        let totalTime = 0;
+        let weightedSetupTime = 0;
+        let weightedSkillLevel = 0;
+        let weightedPortability = 0;
+        let allToolsHaveTime = true;
+        let missingTimeTools = [];
+        
+        Object.keys(selectedReassemblyTools).forEach(tool => {
+            const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
+            const timeInput = document.getElementById('time_input_' + id);
+            
+            if (!timeInput) {
+                console.error(`Time input not found for reassembly tool: ${tool}`);
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool);
+                return;
+            }
+            
+            const time = parseFloat(timeInput.value) || 0;
+            
+            if (time <= 0) {
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool);
+                return;
+            }
+            
+            const props = selectedReassemblyTools[tool];
+            if (!props) {
+                console.error(`No properties found for reassembly tool: ${tool}`);
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool + ' (missing properties)');
+                return;
+            }
+            
+            selectedReassemblyTools[tool].time = time;
+            totalTime += time;
+            
+            weightedSetupTime += setupTimeScores[props.setupTime] * time;
+            weightedSkillLevel += skillLevelScores[props.skillLevel] * time;
+            weightedPortability += portabilityScores[props.portability] * time;
+        });
+        
+        if (!allToolsHaveTime) {
+            alert(`Please enter time for the following reassembly tools: ${missingTimeTools.join(', ')}`);
+            return;
+        }
+        
+        if (totalTime === 0) {
+            alert('Total time cannot be zero. Please enter valid time values.');
+            return;
+        }
+        
+        const avgSetupTime = weightedSetupTime / totalTime;
+        const avgSkillLevel = weightedSkillLevel / totalTime;
+        const avgPortability = weightedPortability / totalTime;
+        
+        let score = 0;
+        let details = '';
+        let connectorScore = 1;
+        
+        if (connectionType === 'Cementitious') {
+            score = (avgSetupTime * 0.22) + (avgSkillLevel * 0.50) + (avgPortability * 0.28);
+            
+            details = `
+                <div><strong>Calculation (Cementitious Connection):</strong></div>
+                <div>Score = (Setup Time × 0.22) + (Skill Level × 0.50) + (Portability × 0.28)</div>
+                <div>Score = (${avgSetupTime.toFixed(3)} × 0.22) + (${avgSkillLevel.toFixed(3)} × 0.50) + (${avgPortability.toFixed(3)} × 0.28)</div>
+                <div><strong>Score = ${score.toFixed(4)}</strong></div>
+            `;
+        } else {
+            if (connectionType === 'Other') {
+                connectorScore = 1;
+            } else if (connectionType === 'Screw' || connectionType === 'Bolt') {
+                if (numberOfConnectors <= 2) {
+                    connectorScore = 1;
+                } else if (numberOfConnectors === 3 || numberOfConnectors === 5) {
+                    connectorScore = 0.95;
+                } else {
+                    connectorScore = 0.9;
+                }
+            }
+            
+            score = (avgSetupTime * 0.15) + (avgSkillLevel * 0.48) + (avgPortability * 0.22) + (connectorScore * 0.15);
+            
+            details = `
+                <div><strong>Calculation (${connectionType} Connection):</strong></div>
+                <div>Score = (Setup Time × 0.15) + (Skill Level × 0.48) + (Portability × 0.22) + (Connectors × 0.15)</div>
+                <div>Score = (${avgSetupTime.toFixed(3)} × 0.15) + (${avgSkillLevel.toFixed(3)} × 0.48) + (${avgPortability.toFixed(3)} × 0.22) + (${connectorScore} × 0.15)</div>
+                <div><strong>Score = ${score.toFixed(4)}</strong></div>
+            `;
+        }
+        
+        details += `
+            <div style="margin-top: 15px;">
+                <strong>Tools Used:</strong><br>
+        `;
+        
+        Object.keys(selectedReassemblyTools).forEach(tool => {
+            details += `• ${tool}: ${selectedReassemblyTools[tool].time} minutes<br>`;
+        });
+        
+        details += `
+                <strong>Total Time:</strong> ${totalTime} minutes<br>
+                <strong>Number of Connectors:</strong> ${numberOfConnectors} (Score: ${connectorScore})<br>
+                <strong>Weighted Averages:</strong><br>
+                • Setup Time: ${avgSetupTime.toFixed(3)}<br>
+                • Skill Level: ${avgSkillLevel.toFixed(3)}<br>
+                • Portability: ${avgPortability.toFixed(3)}
+            </div>
+        `;
+        
+        score = Math.max(0, Math.min(1, score));
+        
+        calculationResults.easeOfReassembly = score;
+        
+        const resultDiv = document.getElementById('reassemblyResult');
+        const scoreDiv = document.getElementById('reassemblyScore');
+        const detailsDiv = document.getElementById('reassemblyDetails');
+        
+        resultDiv.classList.remove('hidden');
+        scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(score)}">${(score * 100).toFixed(1)}%</span>`;
+        detailsDiv.innerHTML = details;
+        
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
         
     } catch (error) {
-        console.error('=== DISASSEMBLY CALCULATION ERROR ===');
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-        console.error('Selected tools object:', selectedTools);
-        console.error('Available score mappings:');
-        console.error('- setupTimeScores:', setupTimeScores);
-        console.error('- skillLevelScores:', skillLevelScores);
-        console.error('- portabilityScores:', portabilityScores);
+        console.error('Error calculating ease of reassembly:', error);
+        alert('Error in reassembly calculation. Check console for details.');
+    }
+}
+
+// Calculate damage probability using exponential distribution
+function calculateDamageProbabilityForTools(tools, damageType) {
+    let totalScore = 1;
+    
+    tools.forEach(toolData => {
+        const time = toolData.time;
+        let lambda = 0;
         
-        alert('Error in disassembly calculation. Check console for details.');
+        if (damageType === 'minor') {
+            lambda = minorDamageLambda[toolData.properties.minorDamage] || 0;
+            const probability = 1 - Math.exp(-lambda * time);
+            totalScore *= (1 - probability);
+        } else if (damageType === 'major') {
+            lambda = majorDamageLambda[toolData.properties.majorDamage] || 0;
+            const probability = 1 - Math.exp(-lambda * time);
+            totalScore *= (1 - probability);
+        } else if (damageType === 'precision') {
+            lambda = precisionLambda[toolData.properties.precision] || 0;
+            const probability = Math.exp(-lambda * time);
+            totalScore *= probability;
+        }
+    });
+    
+    return totalScore;
+}
+
+// Calculate overall damage probability score
+function calculateDamageProbability() {
+    try {
+        if (Object.keys(selectedTools).length === 0) {
+            alert('Please select disassembly tools and enter their times first');
+            return;
+        }
+        
+        if (Object.keys(selectedReassemblyTools).length === 0) {
+            alert('Please select reassembly tools and enter their times first');
+            return;
+        }
+        
+        // Prepare disassembly tools data
+        const disassemblyToolsData = [];
+        let allDisassemblyToolsHaveTime = true;
+        
+        Object.keys(selectedTools).forEach(tool => {
+            const id = tool.replace(/\s+/g, '_').toLowerCase();
+            const timeInput = document.getElementById('time_input_' + id);
+            const time = parseFloat(timeInput.value) || 0;
+            
+            if (time <= 0) {
+                allDisassemblyToolsHaveTime = false;
+                return;
+            }
+            
+            disassemblyToolsData.push({
+                name: tool,
+                time: time,
+                properties: selectedTools[tool].properties
+            });
+        });
+        
+        // Prepare reassembly tools data
+        const reassemblyToolsData = [];
+        let allReassemblyToolsHaveTime = true;
+        
+        Object.keys(selectedReassemblyTools).forEach(tool => {
+            const id = tool.replace(/\s+/g, '_').toLowerCase() + '_reassembly';
+            const timeInput = document.getElementById('time_input_' + id);
+            const time = parseFloat(timeInput.value) || 0;
+            
+            if (time <= 0) {
+                allReassemblyToolsHaveTime = false;
+                return;
+            }
+            
+            reassemblyToolsData.push({
+                name: tool,
+                time: time,
+                properties: selectedReassemblyTools[tool]
+            });
+        });
+        
+        if (!allDisassemblyToolsHaveTime) {
+            alert('Please enter time for all selected disassembly tools');
+            return;
+        }
+        
+        if (!allReassemblyToolsHaveTime) {
+            alert('Please enter time for all selected reassembly tools');
+            return;
+        }
+        
+        // Calculate damage probabilities for each type
+        const minorDisassembly = calculateDamageProbabilityForTools(disassemblyToolsData, 'minor');
+        const majorDisassembly = calculateDamageProbabilityForTools(disassemblyToolsData, 'major');
+        const precisionDisassembly = calculateDamageProbabilityForTools(disassemblyToolsData, 'precision');
+        
+        const minorReassembly = calculateDamageProbabilityForTools(reassemblyToolsData, 'minor');
+        const majorReassembly = calculateDamageProbabilityForTools(reassemblyToolsData, 'major');
+        const precisionReassembly = calculateDamageProbabilityForTools(reassemblyToolsData, 'precision');
+        
+        // Combined scores: (Disassembly + Reassembly) / 2
+        const minorCombined = (minorDisassembly + minorReassembly) / 2;
+        const majorCombined = (majorDisassembly + majorReassembly) / 2;
+        const precisionCombined = (precisionDisassembly + precisionReassembly) / 2;
+        
+        // Weighted final score
+        const finalScore = (minorCombined * damageWeights.minor) + 
+                          (majorCombined * damageWeights.major) + 
+                          (precisionCombined * damageWeights.precision);
+        
+        calculationResults.damageProbability = finalScore;
+        
+        const resultDiv = document.getElementById('damageProbabilityResult');
+        const scoreDiv = document.getElementById('damageProbabilityScore');
+        const detailsDiv = document.getElementById('damageProbabilityDetails');
+        
+        resultDiv.classList.remove('hidden');
+        scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(finalScore)}">${(finalScore * 100).toFixed(1)}%</span>`;
+        
+        detailsDiv.innerHTML = `
+            <div><strong>Damage Probability Calculation:</strong></div>
+            <div style="margin-top: 15px;"><strong>Disassembly Tools Analysis:</strong></div>
+            ${disassemblyToolsData.map(tool => `<div>• ${tool.name}: ${tool.time} minutes</div>`).join('')}
+            
+            <div style="margin-top: 15px;"><strong>Reassembly Tools Analysis:</strong></div>
+            ${reassemblyToolsData.map(tool => `<div>• ${tool.name}: ${tool.time} minutes</div>`).join('')}
+            
+            <div style="margin-top: 15px;"><strong>Individual Scores:</strong></div>
+            <div>Minor Damage - Disassembly: ${(minorDisassembly * 100).toFixed(1)}%, Reassembly: ${(minorReassembly * 100).toFixed(1)}%</div>
+            <div>Major Damage - Disassembly: ${(majorDisassembly * 100).toFixed(1)}%, Reassembly: ${(majorReassembly * 100).toFixed(1)}%</div>
+            <div>Precision - Disassembly: ${(precisionDisassembly * 100).toFixed(1)}%, Reassembly: ${(precisionReassembly * 100).toFixed(1)}%</div>
+            
+            <div style="margin-top: 15px;"><strong>Combined Scores:</strong></div>
+            <div>Minor Combined: ${(minorCombined * 100).toFixed(1)}% (Weight: ${damageWeights.minor})</div>
+            <div>Major Combined: ${(majorCombined * 100).toFixed(1)}% (Weight: ${damageWeights.major})</div>
+            <div>Precision Combined: ${(precisionCombined * 100).toFixed(1)}% (Weight: ${damageWeights.precision})</div>
+            
+            <div style="margin-top: 15px;"><strong>Final Calculation:</strong></div>
+            <div>Score = (${(minorCombined * 100).toFixed(1)}% × ${damageWeights.minor}) + (${(majorCombined * 100).toFixed(1)}% × ${damageWeights.major}) + (${(precisionCombined * 100).toFixed(1)}% × ${damageWeights.precision})</div>
+            <div><strong>Final Score = ${(finalScore * 100).toFixed(1)}%</strong></div>
+        `;
+        
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+        
+    } catch (error) {
+        console.error('Error calculating damage probability:', error);
+        alert('Error in calculation. Please check your inputs.');
     }
 }
 
@@ -1401,6 +1255,20 @@ function getRatingColor(score) {
     if (score >= 0.25) return "#FF9800";
     return "#F44336";
 }
+
+// Initialize application
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - initializing calculator v3.0...');
+    
+    initializeToolSelection();
+    updateConnectionTypeOptions();
+    setupReassemblyConnectionTypeListener();
+    
+    setTimeout(() => {
+        initializeReassemblyToolSelection();
+        console.log('All initialization complete');
+    }, 300);
+});
 
 // Make functions globally accessible
 window.showTab = showTab;
@@ -1414,8 +1282,7 @@ window.updateDisassemblyParameters = updateDisassemblyParameters;
 window.calculateEaseOfDisassembly = calculateEaseOfDisassembly;
 window.calculateEaseOfReassembly = calculateEaseOfReassembly;
 window.calculateDamageProbability = calculateDamageProbability;
-window.forceInitializeReassemblyTools = forceInitializeReassemblyTools;
 
-console.log('Construction Reusability Calculator loaded successfully');
+console.log('Calculator JavaScript loaded successfully - Version 3.0');
 console.log('Available tools:', Object.keys(toolProperties));
-console.log('Reduction factors loaded:', Object.keys(reductionFactors));
+console.log('Score mappings initialized:', { setupTimeScores, skillLevelScores, portabilityScores });
