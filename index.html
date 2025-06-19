@@ -6,7 +6,41 @@
     <meta name="description" content="Construction Connection Reusability Assessment Tool - Evaluate sustainability and reusability potential of construction connections">
     <meta name="keywords" content="construction, reusability, assessment, sustainability, connections, design for disassembly">
     <title>Construction Connection Reusability Assessment</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <!-- Ensure CSS is loaded correctly -->
+    <link rel="stylesheet" href="css/styles.css" type="text/css">
+    <style>
+        /* Fallback critical CSS in case external file doesn't load */
+        .tool-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+            gap: 15px !important;
+        }
+        .tool-item {
+            border: 2px solid #ddd !important;
+            border-radius: 8px !important;
+            padding: 15px !important;
+            background: white !important;
+        }
+        .tool-damage-info {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr 1fr !important;
+            gap: 8px !important;
+            margin-top: 8px !important;
+        }
+        .damage-indicator {
+            padding: 3px 6px !important;
+            border-radius: 3px !important;
+            text-align: center !important;
+            font-weight: 500 !important;
+            color: white !important;
+            font-size: 0.8em !important;
+        }
+        .damage-low { background: #4caf50 !important; }
+        .damage-moderate { background: #ff9800 !important; }
+        .damage-high { background: #f44336 !important; }
+        .damage-very-high { background: #8e24aa !important; }
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -297,19 +331,9 @@
                             <h4>🛠️ Reassembly Tool Selection (Select Multiple)</h4>
                             <p class="tool-instruction">Click on the tools you will use for reassembly. Only assembly-specific tools are available. Time input will appear for each selected tool.</p>
                             
-                            <!-- Debug button for testing -->
-                            <div style="margin-bottom: 10px;">
-                                <button type="button" onclick="forceInitializeReassemblyTools()" style="background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 0.9em;">
-                                    🔄 Load Reassembly Tools (Debug)
-                                </button>
-                            </div>
-                            
                             <!-- Reassembly tool grid will be populated by JavaScript -->
                             <div class="tool-grid" id="reassemblyToolSelectionGrid">
                                 <!-- Reassembly tools will be dynamically generated here -->
-                                <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
-                                    Loading reassembly tools...
-                                </div>
                             </div>
                         </div>
 
