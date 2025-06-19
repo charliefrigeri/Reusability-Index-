@@ -286,6 +286,61 @@
                         <h3>📋 Remaining Parameters</h3>
                         <p>Additional parameters (4-12) will be added progressively as each section is completed and tested.</p>
                     </div>
+
+                    <!-- 4. Ease of Reassembly -->
+                    <div class="form-section">
+                        <h3>🔧 4. Ease of Reassembly Assessment</h3>
+                        <p class="section-description">This parameter quantifies all procedures required to reassemble the connection system, using a reduced set of specialized tools for assembly operations.</p>
+                        
+                        <!-- Reassembly Tool Selection -->
+                        <div class="subsection tool-section">
+                            <h4>🛠️ Reassembly Tool Selection (Select Multiple)</h4>
+                            <p class="tool-instruction">Click on the tools you will use for reassembly. Only assembly-specific tools are available. Time input will appear for each selected tool.</p>
+                            
+                            <!-- Reassembly tool grid will be populated by JavaScript -->
+                            <div class="tool-grid" id="reassemblyToolSelectionGrid">
+                                <!-- Reassembly tools will be dynamically generated here -->
+                            </div>
+                        </div>
+
+                        <!-- Connection Type for Reassembly -->
+                        <div class="subsection connection-section">
+                            <h4>🔗 Connection Type for Reassembly</h4>
+                            <div class="form-group">
+                                <label for="reassemblyConnectionType">Connection Type:</label>
+                                <select id="reassemblyConnectionType" required>
+                                    <option value="">Select connection type</option>
+                                    <option value="Cementitious">Cementitious</option>
+                                    <option value="Screw">Screw</option>
+                                    <option value="Bolt">Bolt</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="reassemblyConnectorsGroup" style="display: none;">
+                                <label for="reassemblyNumberOfConnectors">Number of Connectors:</label>
+                                <input type="number" id="reassemblyNumberOfConnectors" min="1" step="1" placeholder="Enter number of connectors">
+                            </div>
+                        </div>
+
+                        <!-- Tool Properties Display for Reassembly -->
+                        <div id="reassemblyToolPropertiesDisplay" class="subsection tool-props-section hidden">
+                            <h4>🔍 Selected Reassembly Tools Summary</h4>
+                            <div id="reassemblyToolPropertiesList"></div>
+                        </div>
+
+                        <!-- Calculate Button and Result -->
+                        <div class="button-container">
+                            <button type="button" class="calculate-btn" onclick="calculateEaseOfReassembly()">
+                                🔬 Calculate Ease of Reassembly Score
+                            </button>
+                        </div>
+
+                        <div id="reassemblyResult" class="results hidden">
+                            <h4>📊 Ease of Reassembly Result</h4>
+                            <div class="score-display" id="reassemblyScore">Score: --</div>
+                            <div id="reassemblyDetails" class="result-details"></div>
+                        </div>
+                    </div>
                 </form>
             </div>
 
