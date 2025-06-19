@@ -297,9 +297,19 @@
                             <h4>🛠️ Reassembly Tool Selection (Select Multiple)</h4>
                             <p class="tool-instruction">Click on the tools you will use for reassembly. Only assembly-specific tools are available. Time input will appear for each selected tool.</p>
                             
+                            <!-- Debug button for testing -->
+                            <div style="margin-bottom: 10px;">
+                                <button type="button" onclick="forceInitializeReassemblyTools()" style="background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 3px; font-size: 0.9em;">
+                                    🔄 Load Reassembly Tools (Debug)
+                                </button>
+                            </div>
+                            
                             <!-- Reassembly tool grid will be populated by JavaScript -->
                             <div class="tool-grid" id="reassemblyToolSelectionGrid">
                                 <!-- Reassembly tools will be dynamically generated here -->
+                                <div style="padding: 20px; text-align: center; color: #666; font-style: italic;">
+                                    Loading reassembly tools...
+                                </div>
                             </div>
                         </div>
 
