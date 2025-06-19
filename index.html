@@ -1,8 +1,4 @@
-</div>
-
-    <script src="js/calculator-v3.js"></script>
-</body>
-</html><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -319,12 +315,6 @@
                         </div>
                     </div>
 
-                    <!-- Placeholder for remaining parameters -->
-                    <div class="form-section placeholder-section">
-                        <h3>📋 Remaining Parameters</h3>
-                        <p>Additional parameters (4-12) will be added progressively as each section is completed and tested.</p>
-                    </div>
-
                     <!-- 4. Ease of Reassembly -->
                     <div class="form-section">
                         <h3>🔧 4. Ease of Reassembly Assessment</h3>
@@ -485,11 +475,11 @@
                             <h4>⏱️ Total Operation Time</h4>
                             <div class="form-group">
                                 <label for="disassemblyTime">Disassembly Time (minutes):</label>
-                                <input type="number" id="disassemblyTime" min="0" step="0.1" placeholder="Enter disassembly time" onchange="calculateTotalTime()">
+                                <input type="number" id="disassemblyTime" min="0" step="0.1" placeholder="Enter disassembly time">
                             </div>
                             <div class="form-group">
                                 <label for="reassemblyTime">Reassembly Time (minutes):</label>
-                                <input type="number" id="reassemblyTime" min="0" step="0.1" placeholder="Enter reassembly time" onchange="calculateTotalTime()">
+                                <input type="number" id="reassemblyTime" min="0" step="0.1" placeholder="Enter reassembly time">
                             </div>
                             <div class="form-group result-display">
                                 <label>Total Time:</label>
@@ -538,56 +528,3 @@
                             <div style="background: rgba(255,255,255,0.9); padding: 15px; border-radius: 5px; margin-top: 15px;">
                                 <strong>Final Formula:</strong><br>
                                 <code>Score = (Connection Type × 0.30) + (Industry Preference × 0.30) + (Skill Level × 0.30) + (Time × 0.10)</code>
-                            </div>
-                        </div>
-
-                        <!-- Calculate Button and Result -->
-                        <div class="button-container">
-                            <button type="button" class="calculate-btn" onclick="calculateConnectionComplexity()">
-                                🔬 Calculate Connection Complexity Score
-                            </button>
-                        </div>
-
-                        <div id="connectionComplexityResult" class="results hidden">
-                            <h4>📊 Connection Complexity Result</h4>
-                            <div class="score-display" id="connectionComplexityScore">Score: --</div>
-                            <div id="connectionComplexityDetails" class="result-details"></div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Explanation Tab -->
-            <div id="explanation" class="tab-content">
-                <div class="explanation-content">
-                    <h2>📚 Reusability Assessment Framework</h2>
-                    
-                    <p>This framework evaluates the reusability potential of construction connections through a comprehensive multi-parameter assessment system. The methodology considers technical, practical, and economic factors that influence the feasibility of connection disassembly and reassembly.</p>
-
-                    <h2>🎯 Main Parameters</h2>
-
-                    <h3>1. End of Cycle Waste (Weight: 2.40)</h3>
-                    <p>Assesses the amount of material that can be reused when the connection system is disassembled.</p>
-                    <div class="formula">
-                        Score = 1 - (Material Waste Component + Reinforcement Waste Component)
-                    </div>
-
-                    <h3>2. Prefabrication Degree (Weight: 1.26)</h3>
-                    <p>Measures the extent to which the connection is produced in a factory:</p>
-                    <div class="formula">
-                        Score = Prefabricated Area / Joint Area
-                    </div>
-
-                    <h3>3. Ease of Disassembly (Weight: 3.06)</h3>
-                    <p>Quantifies procedures required to disassemble the connection system, including tool requirements, skill levels, and setup time.</p>
-                    
-                    <h3>4. Additional Parameters</h3>
-                    <p>The remaining 9 parameters will be implemented progressively to complete the comprehensive assessment framework.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="js/calculator-v3.js"></script>
-</body>
-</html>
