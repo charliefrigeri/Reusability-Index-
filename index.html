@@ -3,73 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ease of Disassembly Assessment</title>
+    <title>Construction Connection Reusability Assessment</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔧 Ease of Disassembly Assessment</h1>
-            <p>Evaluate the ease of disassembling construction connections</p>
+            <h1>🏗️ Construction Connection Reusability Assessment</h1>
+            <p>Evaluate the reusability potential of construction connections with advanced scoring algorithms</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('calculator')">📊 Calculator</button>
+            <button class="nav-tab" onclick="showTab('explanation')">📚 Explanation</button>
         </div>
 
         <div class="content">
-            <form id="disassemblyForm">
-                <!-- Tool Selection -->
-                <div class="form-section">
-                    <h3>🛠️ Tool Selection (Select Multiple)</h3>
-                    <p class="info-text">Click on the tools you will use for disassembly. Time input will appear for each selected tool.</p>
+            <!-- Calculator Tab -->
+            <div id="calculator" class="tab-content active">
+                <!-- Welcome Section -->
+                <div class="welcome-section">
+                    <h2>🏗️ Welcome to the Construction Connection Reusability Assessment</h2>
+                    <p>This advanced framework evaluates the reusability potential of construction connections through <strong>12 main parameters</strong>:</p>
+                    <div class="parameters-grid">
+                        <div>• End of Cycle Waste</div>
+                        <div>• Prefabrication Degree</div>
+                        <div>• Damage Probability</div>
+                        <div>• Ease of Disassembly</div>
+                        <div>• Ease of Reassembly</div>
+                        <div>• Connection Complexity</div>
+                        <div>• Number of Steps and Time</div>
+                        <div>• Accessibility of Connection</div>
+                        <div>• Tolerance</div>
+                        <div>• Size</div>
+                        <div>• Structural Strength</div>
+                        <div>• Design Documentation</div>
+                    </div>
+                    <p>Based on these parameters, the reusability score of your connection will be calculated to help optimize construction sustainability.</p>
+                </div>
+
+                <form id="assessmentForm">
+                    <!-- 1. End of Cycle Waste -->
+                    <div class="form-section">
+                        <h3>🔄 1. End of Cycle Waste Assessment</h3>
+                        <p class="section-description">This parameter assesses the amount of material that can be reused when the connection system is disassembled.</p>
+                        
+                        <!-- Connection Geometry -->
+                        <div class="subsection geometry-section">
+                            <h4>📐 Connection Geometry</h4>
+                            <div class="form-group">
+                                <label for="connectionType">Connection Type:</label>
+                                <select id="connectionType" required onchange="updateJointArea()">
+                                    <option value="">Select Connection Type</option>
+                                    <option value="Column-Column">Column-Column</option>
+                                    <option value="Wall-Wall Horizontal">Wall-Wall Horizontal</option>
+                                    <option value="Other">Other Connections</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="length">Length (cm):</label>
+                                <input type="number" id="length" min="0" step="0.1" required onchange="updateJointArea()">
+                            </div>
+                            <div class="form-group">
+                                <label for="width">Width (cm):</label>
+                                <input type="number" id="width" min="0" step="0.1" required onchange="updateJointArea()">
+                            </div>
+                            <div class="form-group">
+                                <label for="height">Height (cm):</label>
+                                <input type="number" id="height" min="0" step="0.1" onchange="updateJointArea()">
+                            </div>
+                            <div class="form-group result-display">
+                                <label>Joint Area:</label>
+                                <span id="jointAreaDisplay">-- cm²</span>
+                            </div>
+                        </div>
+
+                        <!-- Material Properties -->
+                        <div class="subsection material-section">
+                            <h4>🧱 Material Properties</h4>
+                            <div class="form-group">
+                                <label for="wasteArea">Waste Area (cm²):</label>
+                                <input type="number" id="wasteArea" min="0" step="0.1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="strengthClass">Concrete Strength Class:</label>
+                                <select id="strengthClass" required onchange="updateReductionFactor()">
+                                    <option value="">Select Strength Class</option>
+                                    <option value="C12/15">C12/15</option>
+                                    <option value="C20/25">C20/25</option>
+                                    <option value="C30/37">C30/37</option>
+                                    <option value="C40/50">C40/50</option>
+                                    <option value="C45/55">C45/55</option>
+                                    <option value="C50/60">C50/60</option>
+                                    <option value="C55/67">C55/67</option>
+                                    <option value="C60/76">C60/76</option>
+                                    <option value="C70/85">C70/85</option>
+                                    <option value="C80/95">C80/95</option>
+                                    <option value="C90/105">C90/105</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="mortarType">Mortar Type:</label>
+                                <select id="mortarType" required onchange="updateReductionFactor()">
+                                    <option value="">Select Mortar Type</option>
+                                    <option value="I">Type I</option>
+                                    <option value="IIIA">Type IIIA</option>
+                                    <option value="IIIB">Type IIIB</option>
+                                    <option value="IIIC">Type IIIC</option>
+                                </select>
+                            </div>
+                            <div class="form-group result-display">
+                                <label>Mortar Reduction Factor:</label>
+                                <span id="reductionFactorDisplay">--</span>
+                            </div>
+                        </div>
+
+                        <!-- Reinforcement Properties -->
+                        <div class="subsection reinforcement-section">
+                            <h4>🔩 Reinforcement Properties</h4>
+                            <div class="form-group result-display">
+                                <label>Reinforcement Type:</label>
+                                <span id="reinforcementTypeDisplay">--</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="reinforcementValue" id="reinforcementLabel">Reinforcement:</label>
+                                <input type="text" id="reinforcementValue" placeholder="Enter 'No waste' or number/length">
+                            </div>
+                            <div class="form-group" id="reinforcementLengthGroup" style="display: none;">
+                                <label for="reinforcementLength">Reinforcement Length (cm):</label>
+                                <input type="number" id="reinforcementLength" min="0" step="0.1" placeholder="Enter length in cm (e.g., 70)">
+                            </div>
+                            <div class="form-group">
+                                <label for="reinforcementDiameter">Reinforcement Diameter:</label>
+                                <select id="reinforcementDiameter">
+                                    <option value="8">8 mm</option>
+                                    <option value="12">12 mm</option>
+                                    <option value="16">16 mm</option>
+                                    <option value="20">20 mm</option>
+                                    <option value="25">25 mm</option>
+                                    <option value="32">32 mm</option>
+                                    <option value="40">40 mm</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Calculate Button and Result -->
+                        <div class="button-container">
+                            <button type="button" class="calculate-btn" onclick="calculateEndOfCycleWaste()">
+                                🔬 Calculate End of Cycle Waste Score
+                            </button>
+                        </div>
+
+                        <div id="endOfCycleResult" class="results hidden">
+                            <h4>📊 End of Cycle Waste Result</h4>
+                            <div class="score-display" id="endOfCycleScore">Score: --</div>
+                            <div id="endOfCycleDetails" class="result-details"></div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Prefabrication Degree -->
+                    <div class="form-section">
+                        <h3>🏭 2. Prefabrication Degree Assessment</h3>
+                        <p class="section-description">This parameter measures the extent to which the connection is produced in a factory.</p>
+                        
+                        <div class="subsection prefab-section">
+                            <h4>🏗️ Prefabrication Details</h4>
+                            <div class="form-group">
+                                <label for="prefabricatedArea">Prefabricated Area (cm²):</label>
+                                <input type="number" id="prefabricatedArea" min="0" step="0.1" required>
+                            </div>
+                            <div class="form-group result-display">
+                                <label>Joint Area (from above):</label>
+                                <span id="jointAreaDisplay2">-- cm²</span>
+                            </div>
+                        </div>
+
+                        <!-- Calculate Button and Result -->
+                        <div class="button-container">
+                            <button type="button" class="calculate-btn" onclick="calculatePrefabricationDegree()">
+                                🔬 Calculate Prefabrication Degree Score
+                            </button>
+                        </div>
+
+                        <div id="prefabricationResult" class="results hidden">
+                            <h4>📊 Prefabrication Degree Result</h4>
+                            <div class="score-display" id="prefabricationScore">Score: --</div>
+                            <div id="prefabricationDetails" class="result-details"></div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Ease of Disassembly -->
+                    <div class="form-section">
+                        <h3>🔧 3. Ease of Disassembly Assessment</h3>
+                        <p class="section-description">This parameter quantifies all procedures required to disassemble the connection system, encompassing the necessary tools, required labor skill level, and setup time.</p>
+                        
+                        <!-- Tool Selection -->
+                        <div class="subsection tool-section">
+                            <h4>🛠️ Tool Selection (Select Multiple)</h4>
+                            <p class="tool-instruction">Click on the tools you will use for disassembly. Time input will appear for each selected tool.</p>
+                            
+                            <div class="tool-grid">
+                                <!-- Battery Disc Saw -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_battery_disc_saw" onchange="toggleToolStatic('Battery Disc Saw', this)">
+                                        <label for="tool_battery_disc_saw">Battery Disc Saw</label>
+                                    </div>
+                                    <div class="tool-properties">Setup: Low | Skill: Basic | Portability: High</div>
+                                    <div id="time_battery_disc_saw" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_battery_disc_saw" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Corded Disc Saw -->
+                                <div class="tool-item">
+                                    <div class="tool-header">
+                                        <input type="checkbox" id="tool_corded_disc_saw" onchange="toggleToolStatic('Corded Disc Saw', this)">
+                                        <label for="tool_corded_disc_saw">Corded Disc Saw</label>
+                                    </div>
+                                    <div class="tool-properties">Setup: Low | Skill: Basic | Portability: Medium</div>
+                                    <div id="time_corded_disc_saw" class="time-input hidden">
+                                        <label>Time (minutes):</label>
+                                        <input type="number" id="time_input_corded_disc_saw" min="0" step="0.1" placeholder="Enter time">
+                                    </div>
+                                </div>
+
+                                <!-- Add more tools here (keeping it shorter for now) -->
+                                
+                            </div>
+                        </div>
+
+                        <!-- Connection Type -->
+                        <div class="subsection connection-section">
+                            <h4>🔗 Connection Type</h4>
+                            <div class="form-group">
+                                <label for="disassemblyConnectionType">Connection Type:</label>
+                                <select id="disassemblyConnectionType" onchange="updateDisassemblyParameters()" required>
+                                    <option value="">Select connection type</option>
+                                    <option value="Cementitious">Cementitious</option>
+                                    <option value="Screw">Screw</option>
+                                    <option value="Bolt">Bolt</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="connectorsGroup" style="display: none;">
+                                <label for="numberOfConnectors">Number of Connectors:</label>
+                                <input type="number" id="numberOfConnectors" min="1" step="1" placeholder="Enter number of connectors">
+                            </div>
+                        </div>
+
+                        <!-- Sub-parameters Display -->
+                        <div id="disassemblySubParameters" class="subsection sub-params-section hidden">
+                            <h4>📊 Sub-parameters and Weights</h4>
+                            <div id="subParametersList"></div>
+                        </div>
+
+                        <!-- Tool Properties Display -->
+                        <div id="toolPropertiesDisplay" class="subsection tool-props-section hidden">
+                            <h4>🔍 Tool Properties</h4>
+                            <div id="toolPropertiesList"></div>
+                        </div>
+
+                        <!-- Calculate Button and Result -->
+                        <div class="button-container">
+                            <button type="button" class="calculate-btn" onclick="calculateEaseOfDisassembly()">
+                                🔬 Calculate Ease of Disassembly Score
+                            </button>
+                        </div>
+
+                        <div id="disassemblyResult" class="results hidden">
+                            <h4>📊 Ease of Disassembly Result</h4>
+                            <div class="score-display" id="disassemblyScore">Score: --</div>
+                            <div id="disassemblyDetails" class="result-details"></div>
+                        </div>
+                    </div>
+
+                    <!-- Placeholder for remaining parameters -->
+                    <div class="form-section placeholder-section">
+                        <h3>📋 Remaining Parameters</h3>
+                        <p>Additional parameters (4-12) will be added progressively as each section is completed and tested.</p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Explanation Tab -->
+            <div id="explanation" class="tab-content">
+                <div class="explanation-content">
+                    <h2>📚 Reusability Assessment Framework</h2>
                     
-                    <div id="toolSelectionGrid" class="tool-grid">
-                        <!-- Tool items will be dynamically generated by JavaScript -->
+                    <p>This framework evaluates the reusability potential of construction connections through a comprehensive multi-parameter assessment system. The methodology considers technical, practical, and economic factors that influence the feasibility of connection disassembly and reassembly.</p>
+
+                    <h2>🎯 Main Parameters</h2>
+
+                    <h3>1. End of Cycle Waste (Weight: 2.40)</h3>
+                    <p>Assesses the amount of material that can be reused when the connection system is disassembled. The score is calculated using:</p>
+                    <div class="formula">
+                        Score = (Reusable Area / Joint Area) × (1 / RF_material)
                     </div>
-                </div>
+                    <p>Where RF_material is the reduction factor based on concrete strength class and mortar type.</p>
 
-                <!-- Connection Type -->
-                <div class="form-section connection-section">
-                    <h3>🔗 Connection Type</h3>
-                    <div class="form-group">
-                        <label for="disassemblyConnectionType">Connection Type:</label>
-                        <select id="disassemblyConnectionType" onchange="updateDisassemblyParameters()" required>
-                            <option value="">Select connection type</option>
-                            <option value="Cementitious">Cementitious</option>
-                            <option value="Screw">Screw</option>
-                            <option value="Bolt">Bolt</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="connectorsGroup" style="display: none;">
-                        <label for="numberOfConnectors">Number of Connectors:</label>
-                        <input type="number" id="numberOfConnectors" min="1" step="1" placeholder="Enter number of connectors">
-                    </div>
-                </div>
+                    <h3>2. Damage Probability (Weight: 2.65)</h3>
+                    <p>Evaluates the probability of damaging connection components during disassembly and reassembly operations, considering:</p>
+                    <ul>
+                        <li><strong>Minor Damage Probability (28%)</strong>: Easily repairable damage</li>
+                        <li><strong>Major Damage Probability (52%)</strong>: Damage requiring additional measurements</li>
+                        <li><strong>Precision (20%)</strong>: Tool precision requirements</li>
+                    </ul>
 
-                <!-- Sub-parameters Display -->
-                <div id="disassemblySubParameters" class="sub-parameters-display hidden">
-                    <h4>📊 Sub-parameters and Weights</h4>
-                    <div id="subParametersList"></div>
-                </div>
+                    <h3>3. Ease of Disassembly (Weight: 3.06)</h3>
+                    <p>Quantifies procedures required to disassemble the connection system, including:</p>
+                    <ul>
+                        <li><strong>Setup Time (22%)</strong>: Time to prepare tools and safety measures</li>
+                        <li><strong>Skill Level (50%)</strong>: Required operator training level</li>
+                        <li><strong>Portability (28%)</strong>: Tool transportation and mobility</li>
+                    </ul>
 
-                <!-- Tool Properties Display -->
-                <div id="toolPropertiesDisplay" class="tool-properties-display hidden">
-                    <h4>🔍 Selected Tools Properties</h4>
-                    <div id="toolPropertiesList"></div>
+                    <!-- Add more parameter descriptions as needed -->
                 </div>
-
-                <!-- Calculate Button -->
-                <div class="button-container">
-                    <button type="button" class="calculate-btn" onclick="calculateEaseOfDisassembly()">
-                        🔬 Calculate Ease of Disassembly Score
-                    </button>
-                </div>
-
-                <!-- Results -->
-                <div id="disassemblyResult" class="results hidden">
-                    <h4>📊 Ease of Disassembly Result</h4>
-                    <div class="score-display" id="disassemblyScore">Score: --</div>
-                    <div id="disassemblyDetails" class="result-details"></div>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
