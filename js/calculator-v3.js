@@ -1,7 +1,7 @@
-// Construction Connection Reusability Assessment Calculator v3.2
-// Fixed Connection Complexity implementation
+// Construction Connection Reusability Assessment Calculator v3.3
+// Fixed version with proper Connection Complexity implementation
 
-console.log('Loading calculator-v3.js - Version 3.2');
+console.log('Loading calculator-v3.js - Version 3.3');
 
 // Score mappings (DEFINED FIRST)
 const setupTimeScores = { "Low": 1, "Moderate": 0.5, "High": 0 };
@@ -79,6 +79,13 @@ function getDamageClass(level) {
         case 'Very High': return 'damage-very-high';
         default: return 'damage-moderate';
     }
+}
+
+function getRatingColor(score) {
+    if (score >= 0.75) return "#4CAF50";
+    if (score >= 0.5) return "#FFC107";
+    if (score >= 0.25) return "#FF9800";
+    return "#F44336";
 }
 
 // Connection Complexity scoring functions
@@ -308,13 +315,6 @@ function calculateConnectionComplexity() {
         console.error('Error calculating connection complexity:', error);
         alert('Error in connection complexity calculation. Please check your inputs.');
     }
-}
-
-function getRatingColor(score) {
-    if (score >= 0.75) return "#4CAF50";
-    if (score >= 0.5) return "#FFC107";
-    if (score >= 0.25) return "#FF9800";
-    return "#F44336";
 }
 
 function showTab(tabName) {
@@ -718,7 +718,7 @@ function calculateEaseOfReassembly() {
     }
 }
 
-// Additional calculation functions (simplified versions)
+// Additional calculation functions
 function updateJointArea() {
     const connectionType = document.getElementById('connectionType').value;
     const length = parseFloat(document.getElementById('length').value) || 0;
@@ -1133,21 +1133,6 @@ function calculateDamageProbability() {
     }
 }
 
-// Initialize application
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - initializing calculator v3.2...');
-    
-    initializeToolSelection();
-    updateConnectionTypeOptions();
-    setupReassemblyConnectionTypeListener();
-    setupConnectionComplexityListeners();
-    
-    setTimeout(() => {
-        initializeReassemblyToolSelection();
-        console.log('All initialization complete v3.2');
-    }, 300);
-});
-
 function setupConnectionComplexityListeners() {
     // Connection Type dropdown
     const complexityConnectionType = document.getElementById('complexityConnectionType');
@@ -1174,7 +1159,22 @@ function setupConnectionComplexityListeners() {
     }
 }
 
-// Make functions globally accessible
+// Initialize application
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - initializing calculator v3.3...');
+    
+    initializeToolSelection();
+    updateConnectionTypeOptions();
+    setupReassemblyConnectionTypeListener();
+    setupConnectionComplexityListeners();
+    
+    setTimeout(() => {
+        initializeReassemblyToolSelection();
+        console.log('All initialization complete v3.3');
+    }, 300);
+});
+
+// Make functions globally accessible - THIS IS CRITICAL FOR HTML ONCLICK HANDLERS
 window.showTab = showTab;
 window.updateJointArea = updateJointArea;
 window.updateReductionFactor = updateReductionFactor;
@@ -1188,8 +1188,10 @@ window.calculateEaseOfReassembly = calculateEaseOfReassembly;
 window.calculateDamageProbability = calculateDamageProbability;
 window.calculateTotalTime = calculateTotalTime;
 window.calculateConnectionComplexity = calculateConnectionComplexity;
+window.updateConnectionComplexityScores = updateConnectionComplexityScores;
+window.updateCombinedSkillLevelScore = updateCombinedSkillLevelScore;
 
-console.log('Calculator JavaScript v3.2 loaded successfully - All variables properly defined');
+console.log('Calculator JavaScript v3.3 loaded successfully - All functions exposed to global scope');
 console.log('setupTimeScores check:', typeof setupTimeScores, setupTimeScores);
 console.log('Available tools:', Object.keys(toolProperties).length);
 console.log('Available reassembly tools:', Object.keys(reassemblyToolProperties).length);
