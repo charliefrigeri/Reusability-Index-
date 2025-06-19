@@ -557,7 +557,7 @@ function calculateEaseOfDisassembly() {
         });
         
         if (!allToolsHaveTime) {
-            alert(`Please enter time for the following disassembly tools: ${missingTimeTools.join(', ')}`);
+            alert('Please enter time for the following disassembly tools: ' + missingTimeTools.join(', '));
             return;
         }
         
@@ -590,15 +590,13 @@ function calculateEaseOfDisassembly() {
         const detailsDiv = document.getElementById('disassemblyDetails');
         
         resultDiv.classList.remove('hidden');
-        scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(score)}">${(score * 100).toFixed(1)}%</span>`;
+        scoreDiv.innerHTML = 'Score: <span style="color: ' + getRatingColor(score) + '">' + (score * 100).toFixed(1) + '%</span>';
         
-        let details = `
-            <div><strong>Calculation (${connectionType} Connection):</strong></div>
-            <div>Tools Used: ${Object.keys(selectedTools).map(tool => `${tool}: ${selectedTools[tool].time}min`).join(', ')}</div>
-            <div>Total Time: ${totalTime} minutes</div>
-            <div>Weighted Averages: Setup: ${avgSetupTime.toFixed(3)}, Skill: ${avgSkillLevel.toFixed(3)}, Portability: ${avgPortability.toFixed(3)}</div>
-            <div><strong>Final Score: ${(score * 100).toFixed(1)}%</strong></div>
-        `;
+        let details = '<div><strong>Calculation (' + connectionType + ' Connection):</strong></div>' +
+                     '<div>Tools Used: ' + Object.keys(selectedTools).map(tool => tool + ': ' + selectedTools[tool].time + 'min').join(', ') + '</div>' +
+                     '<div>Total Time: ' + totalTime + ' minutes</div>' +
+                     '<div>Weighted Averages: Setup: ' + avgSetupTime.toFixed(3) + ', Skill: ' + avgSkillLevel.toFixed(3) + ', Portability: ' + avgPortability.toFixed(3) + '</div>' +
+                     '<div><strong>Final Score: ' + (score * 100).toFixed(1) + '%</strong></div>';
         
         detailsDiv.innerHTML = details;
         resultDiv.scrollIntoView({ behavior: 'smooth' });
@@ -660,7 +658,7 @@ function calculateEaseOfReassembly() {
         });
         
         if (!allToolsHaveTime) {
-            alert(`Please enter time for the following reassembly tools: ${missingTimeTools.join(', ')}`);
+            alert('Please enter time for the following reassembly tools: ' + missingTimeTools.join(', '));
             return;
         }
         
@@ -693,15 +691,13 @@ function calculateEaseOfReassembly() {
         const detailsDiv = document.getElementById('reassemblyDetails');
         
         resultDiv.classList.remove('hidden');
-        scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(score)}">${(score * 100).toFixed(1)}%</span>`;
+        scoreDiv.innerHTML = 'Score: <span style="color: ' + getRatingColor(score) + '">' + (score * 100).toFixed(1) + '%</span>';
         
-        let details = `
-            <div><strong>Calculation (${connectionType} Connection):</strong></div>
-            <div>Tools Used: ${Object.keys(selectedReassemblyTools).map(tool => `${tool}: ${selectedReassemblyTools[tool].time}min`).join(', ')}</div>
-            <div>Total Time: ${totalTime} minutes</div>
-            <div>Weighted Averages: Setup: ${avgSetupTime.toFixed(3)}, Skill: ${avgSkillLevel.toFixed(3)}, Portability: ${avgPortability.toFixed(3)}</div>
-            <div><strong>Final Score: ${(score * 100).toFixed(1)}%</strong></div>
-        `;
+        let details = '<div><strong>Calculation (' + connectionType + ' Connection):</strong></div>' +
+                     '<div>Tools Used: ' + Object.keys(selectedReassemblyTools).map(tool => tool + ': ' + selectedReassemblyTools[tool].time + 'min').join(', ') + '</div>' +
+                     '<div>Total Time: ' + totalTime + ' minutes</div>' +
+                     '<div>Weighted Averages: Setup: ' + avgSetupTime.toFixed(3) + ', Skill: ' + avgSkillLevel.toFixed(3) + ', Portability: ' + avgPortability.toFixed(3) + '</div>' +
+                     '<div><strong>Final Score: ' + (score * 100).toFixed(1) + '%</strong></div>';
         
         detailsDiv.innerHTML = details;
         resultDiv.scrollIntoView({ behavior: 'smooth' });
