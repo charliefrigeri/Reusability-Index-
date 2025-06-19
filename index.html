@@ -351,6 +351,65 @@
                             <div id="reassemblyDetails" class="result-details"></div>
                         </div>
                     </div>
+
+                    <!-- 5. Damage Probability Assessment -->
+                    <div class="form-section">
+                        <h3>⚠️ 5. Damage Probability Assessment</h3>
+                        <p class="section-description">This parameter evaluates the likelihood of damage during disassembly and reassembly operations based on tool characteristics and usage time. The calculation combines minor damage, major damage, and precision loss probabilities.</p>
+                        
+                        <!-- Prerequisites Information -->
+                        <div class="subsection" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-left: 4px solid #ffc107;">
+                            <h4>📋 Prerequisites</h4>
+                            <p><strong>Before calculating damage probability, ensure you have:</strong></p>
+                            <ul style="margin: 10px 0; padding-left: 30px;">
+                                <li>✅ Selected disassembly tools (Section 3) and entered their usage times</li>
+                                <li>✅ Selected reassembly tools (Section 4) and entered their usage times</li>
+                            </ul>
+                            <p style="margin-top: 15px; font-style: italic; color: #856404;">
+                                💡 The damage probability is calculated using exponential distribution based on tool damage characteristics and usage duration.
+                            </p>
+                        </div>
+
+                        <!-- Damage Probability Methodology -->
+                        <div class="subsection" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-left: 4px solid #2196f3;">
+                            <h4>🔬 Calculation Methodology</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin: 15px 0;">
+                                <div style="background: rgba(255,255,255,0.7); padding: 10px; border-radius: 5px; text-align: center;">
+                                    <strong>Minor Damage</strong><br>
+                                    <span style="color: #ff9800;">Weight: 28%</span><br>
+                                    <small>Surface scratches, small chips</small>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.7); padding: 10px; border-radius: 5px; text-align: center;">
+                                    <strong>Major Damage</strong><br>
+                                    <span style="color: #f44336;">Weight: 52%</span><br>
+                                    <small>Structural damage, cracks</small>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.7); padding: 10px; border-radius: 5px; text-align: center;">
+                                    <strong>Precision Loss</strong><br>
+                                    <span style="color: #4caf50;">Weight: 20%</span><br>
+                                    <small>Dimensional accuracy loss</small>
+                                </div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.9); padding: 15px; border-radius: 5px; margin-top: 15px;">
+                                <strong>Formula:</strong><br>
+                                <code>Final Score = (Minor_Combined × 0.28) + (Major_Combined × 0.52) + (Precision_Combined × 0.20)</code><br>
+                                <small>Where: Combined = (Disassembly_Score + Reassembly_Score) / 2</small>
+                            </div>
+                        </div>
+
+                        <!-- Calculate Button and Result -->
+                        <div class="button-container">
+                            <button type="button" class="calculate-btn" onclick="calculateDamageProbability()">
+                                🔬 Calculate Damage Probability Score
+                            </button>
+                        </div>
+
+                        <div id="damageProbabilityResult" class="results hidden">
+                            <h4>📊 Damage Probability Result</h4>
+                            <div class="score-display" id="damageProbabilityScore">Score: --</div>
+                            <div id="damageProbabilityDetails" class="result-details"></div>
+                        </div>
+                    </div>
                 </form>
             </div>
 
