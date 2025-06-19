@@ -1168,9 +1168,16 @@ function updateDisassemblyParameters() {
 
 // Calculate Ease of Disassembly Score
 function calculateEaseOfDisassembly() {
+    console.log('=== DISASSEMBLY CALCULATION START ===');
+    
     try {
         const connectionType = document.getElementById('disassemblyConnectionType').value;
-        const numberOfConnectors = parseFloat(document.getElementById('numberOfConnectors').value) || 0;
+        const numberOfConnectorsInput = document.getElementById('numberOfConnectors');
+        const numberOfConnectors = numberOfConnectorsInput ? parseFloat(numberOfConnectorsInput.value) || 0 : 0;
+        
+        console.log('Connection Type:', connectionType);
+        console.log('Number of Connectors:', numberOfConnectors);
+        console.log('Selected Tools:', Object.keys(selectedTools));
         
         if (!connectionType) {
             alert('Please select a connection type for disassembly');
@@ -1188,10 +1195,15 @@ function calculateEaseOfDisassembly() {
         let weightedPortability = 0;
         let allToolsHaveTime = true;
         let missingTimeTools = [];
+        let toolDetails = [];
         
         Object.keys(selectedTools).forEach(tool => {
             const id = tool.replace(/\s+/g, '_').toLowerCase();
             const timeInput = document.getElementById('time_input_' + id);
+            
+            console.log(`Processing tool: ${tool}`);
+            console.log(`Looking for time input ID: time_input_${id}`);
+            console.log('Time input element:', timeInput);
             
             if (!timeInput) {
                 console.error(`Time input not found for tool: ${tool} (ID: time_input_${id})`);
@@ -1201,6 +1213,7 @@ function calculateEaseOfDisassembly() {
             }
             
             const time = parseFloat(timeInput.value) || 0;
+            console.log(`Time for ${tool}: ${time}`);
             
             if (time <= 0) {
                 allToolsHaveTime = false;
@@ -1208,14 +1221,66 @@ function calculateEaseOfDisassembly() {
                 return;
             }
             
+            // Validate tool properties
+            const props = selectedTools[tool].properties;
+            if (!props) {
+                console.error(`No properties found for tool: ${tool}`);
+                console.error('Tool object:', selectedTools[tool]);
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool + ' (missing properties)');
+                return;
+            }
+            
+            console.log(`Properties for ${tool}:`, props);
+            
+            // Check if score mappings exist
+            if (setupTimeScores[props.setupTime] === undefined) {
+                console.error(`Setup time score not found for: ${props.setupTime}`);
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool + ' (invalid setup time)');
+                return;
+            }
+            
+            if (skillLevelScores[props.skillLevel] === undefined) {
+                console.error(`Skill level score not found for: ${props.skillLevel}`);
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool + ' (invalid skill level)');
+                return;
+            }
+            
+            if (portabilityScores[props.portability] === undefined) {
+                console.error(`Portability score not found for: ${props.portability}`);
+                allToolsHaveTime = false;
+                missingTimeTools.push(tool + ' (invalid portability)');
+                return;
+            }
+            
             selectedTools[tool].time = time;
             totalTime += time;
             
-            const props = selectedTools[tool].properties;
-            weightedSetupTime += setupTimeScores[props.setupTime] * time;
-            weightedSkillLevel += skillLevelScores[props.skillLevel] * time;
-            weightedPortability += portabilityScores[props.portability] * time;
+            const setupScore = setupTimeScores[props.setupTime];
+            const skillScore = skillLevelScores[props.skillLevel];
+            const portabilityScore = portabilityScores[props.portability];
+            
+            weightedSetupTime += setupScore * time;
+            weightedSkillLevel += skillScore * time;
+            weightedPortability += portabilityScore * time;
+            
+            toolDetails.push({
+                name: tool,
+                time: time,
+                setupScore: setupScore,
+                skillScore: skillScore,
+                portabilityScore: portabilityScore
+            });
+            
+            console.log(`${tool} - Setup: ${props.setupTime}(${setupScore}), Skill: ${props.skillLevel}(${skillScore}), Portability: ${props.portability}(${portabilityScore}), Time: ${time}`);
         });
+        
+        console.log('All tools have time:', allToolsHaveTime);
+        console.log('Missing time tools:', missingTimeTools);
+        console.log('Total time:', totalTime);
+        console.log('Tool details:', toolDetails);
         
         if (!allToolsHaveTime) {
             alert(`Please enter time for the following disassembly tools: ${missingTimeTools.join(', ')}`);
@@ -1230,6 +1295,11 @@ function calculateEaseOfDisassembly() {
         const avgSetupTime = weightedSetupTime / totalTime;
         const avgSkillLevel = weightedSkillLevel / totalTime;
         const avgPortability = weightedPortability / totalTime;
+        
+        console.log('Weighted averages:');
+        console.log('- Setup Time:', avgSetupTime);
+        console.log('- Skill Level:', avgSkillLevel);
+        console.log('- Portability:', avgPortability);
         
         let score = 0;
         let details = '';
@@ -1272,8 +1342,8 @@ function calculateEaseOfDisassembly() {
                 <strong>Tools Used:</strong><br>
         `;
         
-        Object.keys(selectedTools).forEach(tool => {
-            details += `• ${tool}: ${selectedTools[tool].time} minutes<br>`;
+        toolDetails.forEach(tool => {
+            details += `• ${tool.name}: ${tool.time} minutes<br>`;
         });
         
         details += `
@@ -1288,11 +1358,19 @@ function calculateEaseOfDisassembly() {
         
         score = Math.max(0, Math.min(1, score));
         
+        console.log('Final score:', score);
+        
         calculationResults.easeOfDisassembly = score;
         
         const resultDiv = document.getElementById('disassemblyResult');
         const scoreDiv = document.getElementById('disassemblyScore');
         const detailsDiv = document.getElementById('disassemblyDetails');
+        
+        if (!resultDiv || !scoreDiv || !detailsDiv) {
+            console.error('Result display elements not found');
+            alert('Error: Result display elements not found');
+            return;
+        }
         
         resultDiv.classList.remove('hidden');
         scoreDiv.innerHTML = `Score: <span style="color: ${getRatingColor(score)}">${(score * 100).toFixed(1)}%</span>`;
@@ -1300,10 +1378,18 @@ function calculateEaseOfDisassembly() {
         
         resultDiv.scrollIntoView({ behavior: 'smooth' });
         
+        console.log('=== DISASSEMBLY CALCULATION SUCCESS ===');
+        
     } catch (error) {
-        console.error('Error calculating ease of disassembly:', error);
-        console.error('Error details:', error.message);
-        console.error('Stack trace:', error.stack);
+        console.error('=== DISASSEMBLY CALCULATION ERROR ===');
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        console.error('Selected tools object:', selectedTools);
+        console.error('Available score mappings:');
+        console.error('- setupTimeScores:', setupTimeScores);
+        console.error('- skillLevelScores:', skillLevelScores);
+        console.error('- portabilityScores:', portabilityScores);
+        
         alert('Error in disassembly calculation. Check console for details.');
     }
 }
